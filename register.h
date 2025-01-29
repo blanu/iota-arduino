@@ -4,7 +4,7 @@
 #include <Arduino.h>
 #include <optional>
 #include "storage.h"
-#include "nouns.h"
+#include "noun.h"
 
 class EvalRegister;
 
@@ -13,7 +13,7 @@ class EvalRegister
   public:
     static void initialize()
     {
-      Nouns::initialize();
+      Noun::initialize();
     }
 
     EvalRegister() : i(Word::make(0, INTEGER)), r(std::nullopt) {}
@@ -21,16 +21,16 @@ class EvalRegister
 
     void store_i(Storage newI);
     Storage fetch_i();
-    void load_i(std::vector<byte> data);
+    void load_i(bytes data);
 
-    std::optional<Storage> fetch_r();
-    std::optional<std::vector<byte>> retrieve_r();
+    maybe<Storage> fetch_r();
+    maybe<bytes> retrieve_r();
 
     void eval();
 
   private:
     Storage i;
-    std::optional<Storage> r;
+    maybe<Storage> r;
 };
 
 #endif

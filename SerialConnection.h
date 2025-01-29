@@ -4,21 +4,23 @@
 #include <Arduino.h>
 #include <vector>
 #include <optional>
+
 #include "storage.h"
+#include "ReliableConnection.h"
 
 class SerialConnection
 {
   public:
     SerialConnection()
     {
-      Serial.begin(9600);
+      Serial.begin(115200);
     }
 
-    std::vector<byte> read(int size);
-    void write(std::vector<byte> bs);
-
-    std::optional<Storage> read_storage();
+    maybe<Storage> read_storage();
     void write_storage(Storage x);
+
+  private:
+    ReliableConnection reliable = ReliableConnection(Serial);
 };
 
 #endif

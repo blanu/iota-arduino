@@ -14,26 +14,26 @@ Storage EvalRegister::fetch_i()
   return i;
 }
 
-void EvalRegister::load_i(std::vector<byte> data)
+void EvalRegister::load_i(bytes data)
 {
-  std::optional<Storage> maybeResult = Storage::from_bytes(data);
+  maybe<Storage> maybeResult = Noun::from_bytes(data);
   if(maybeResult)
   {
     i = *maybeResult;
   }
 }
 
-std::optional<Storage> EvalRegister::fetch_r()
+maybe<Storage> EvalRegister::fetch_r()
 {
   return r;
 }
 
-std::optional<std::vector<byte>> EvalRegister::retrieve_r()
+maybe<bytes> EvalRegister::retrieve_r()
 {
   if(r)
   {
     Storage value = *r;
-    return std::optional<std::vector<byte>>(Storage::to_bytes(value));
+    return maybe<bytes>(Noun::to_bytes(value));
   }
   else
   {

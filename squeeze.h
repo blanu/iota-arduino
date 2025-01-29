@@ -5,19 +5,26 @@
 #include <tuple>
 #include <vector>
 
+#include "ReliableConnection.h"
+#include "types.h"
+
 class Storage;
 
-std::vector<byte> squeeze_int(int value);
-std::tuple<int, std::vector<byte>> expand_int(std::vector<byte> value);
-int expand_int_from_bytes(std::vector<byte> bytes);
+bytes squeeze_int(int value);
+bytes squeeze_bigint(ints value);
+bytes squeeze_varint(varint value);
+std::tuple<varint, bytes> expand_int(bytes value);
+varint expand_int_from_bytes(bytes bytes);
+varint expand_conn(ReliableConnection);
 
-std::vector<byte> squeeze_float(float value);
-std::tuple<float, std::vector<byte>> expand_float(std::vector<byte> value);
+bytes squeeze_floating(floating value);
+maybe<floating> expand_floating(bytes value);
+maybe<floating> expand_conn_floating(ReliableConnection conn);
 
-std::vector<byte> squeeze_ints(std::vector<int> value);
-std::tuple<std::vector<int>, std::vector<byte>> expand_ints(std::vector<byte> value);
+bytes squeeze_ints(ints value);
+std::tuple<ints, bytes> expand_ints(bytes value);
 
-std::vector<byte> squeeze_floats(std::vector<float> value);
-std::tuple<std::vector<float>, std::vector<byte>> expand_floats(std::vector<byte> value);
+bytes squeeze_floats(floats value);
+// std::tuple<floats, bytes> expand_floats(bytes value);
 
 #endif

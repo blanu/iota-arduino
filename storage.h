@@ -7,6 +7,9 @@
 #include <variant>
 #include <optional>
 
+#include "ReliableConnection.h"
+#include "types.h"
+
 // StorageType
 #define WORD 0
 #define FLOAT 1
@@ -37,7 +40,9 @@
 #define CONDITIONAL 19
 
 class Storage;
-using I = std::variant<int, float, std::vector<int>, std::vector<float>, std::vector<Storage>>;
+
+using mixed = std::vector<Storage>;
+using I = std::variant<int, float, ints, floats, mixed>;
 
 class Storage
 {
@@ -45,9 +50,6 @@ class Storage
     int o;
     int t;
     I i;
-
-    static std::optional<Storage> from_bytes(std::vector<byte> data);
-    static std::vector<byte> to_bytes(Storage storage);
 
     static Storage identity(Storage i);
 
@@ -62,41 +64,51 @@ class Storage
 class Word
 {
   public:
-    static std::optional<Storage> from_bytes(std::vector<byte> data, int o);
-    static std::vector<byte> to_bytes(Storage storage);
+    static maybe<Storage> from_bytes(bytes data, int o);
+    static bytes to_bytes(Storage storage);
+
+    static maybe<Storage> from_conn(ReliableConnection conn, int objectType);
+    static void to_conn(ReliableConnection conn, Storage i);
+
     static Storage make(int x, int o);
 };
 
 class Float
 {
   public:
-    static std::optional<Storage> from_bytes(std::vector<byte> data, int o);
-    static std::vector<byte> to_bytes(Storage storage);
+    static maybe<Storage> from_bytes(bytes data, int o);
+    static maybe<bytes> to_bytes(Storage storage);
+
+    static maybe<Storage> from_conn(ReliableConnection conn, int objectType);
+    static void to_conn(ReliableConnection conn, Storage x);
+
     static Storage make(float x, int o);
 };
 
 class WordArray
 {
   public:
-    static std::optional<Storage> from_bytes(std::vector<byte> data, int o);
-    static std::vector<byte> to_bytes(Storage storage);
-    static Storage make(std::vector<int> x, int o);
+    static maybe<Storage> from_bytes(bytes data, int o);
+    static bytes to_bytes(Storage storage);
+
+    static maybe<Storage> from_conn(ReliableConnection conn, int objectType);
+    static void to_conn(ReliableConnection conn, Storage i);
+
+    static Storage make(ints x, int o);
 };
 
 class FloatArray
 {
   public:
-    static std::optional<Storage> from_bytes(std::vector<byte> data, int o);
-    static std::vector<byte> to_bytes(Storage storage);
-    static Storage make(std::vector<float> x, int o);
+    static maybe<Storage> from_bytes(bytes data, int o);
+    static bytes to_bytes(Storage storage);
+
+    static maybe<Storage> from_conn(ReliableConnection conn, int objectType);
+    static void to_conn(ReliableConnection conn, Storage i);
+
+    static Storage make(floats x, int o);
 };
 
-class MixedArray
-{
-  public:
-    static std::optional<Storage> from_bytes(std::vector<byte> data, int o);
-    static std::vector<byte> to_bytes(Storage storage);
-    static Storage make(std::vector<Storage> x, int o);
-};
+// Note: MixedArray is defined in noun.h because it needs access to the Noun serialization API
 
 #endif

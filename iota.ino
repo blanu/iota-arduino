@@ -26,6 +26,7 @@ void setup()
 void loop()
 {
   blink(255, 255, 255, 2, 450, 100);
+
   std::optional<Storage> storage = conn.read_storage();
 
   if(storage)
@@ -37,26 +38,6 @@ void loop()
   {
     blink(255, 255, 255, 3, 300, 100);
   }
-
-//   blink();
-//   eval_register.load_i(i_data);
-//   blink();
-
-//   blink();
-//   eval_register.eval();
-//   blink();
-
-//   blink();
-//   std::optional<std::vector<byte>> maybeResult = eval_register.retrieve_r();
-//   if(maybeResult)
-//   {
-//     conn.write(*maybeResult);    
-//   }
-//   else
-//   {
-//     conn.write(std::vector<byte>({0}));
-//   }
-//   blink();
 }
 
 void blink(byte r, byte g, byte b, int count, int onTime, int offTime)

@@ -4,97 +4,10 @@
 #include <Arduino.h>
 #include <stdint.h>
 
+#include "types.h"
 #include "storage.h"
 #include "squeeze.h"
 #include "error.h"
-#include <optional>
-
-// Storage::from_bytes decodes a byte array into a Storage object by delegating to each Storage subclass's decoder
-std::optional<Storage> Storage::from_bytes(std::vector<byte> x)
-{
-  int storageType = (int)x.at(0);
-  int objectType = (int)x.at(1);
-  std::vector<byte> untypedData(x.begin() + 2, x.end());
-
-  switch (storageType)
-  {
-    case WORD:
-    {
-      return std::optional<Storage>(Word::from_bytes(untypedData, objectType));
-    }
-
-    case FLOAT:
-    {
-      return std::optional<Storage>(Float::from_bytes(untypedData, objectType));
-    }
-
-    case WORD_ARRAY:
-    {
-      return std::optional<Storage>(WordArray::from_bytes(untypedData, objectType));
-    }
-
-    case FLOAT_ARRAY:
-    {
-      return std::optional<Storage>(FloatArray::from_bytes(untypedData, objectType));
-    }
-
-    case MIXED_ARRAY:
-    {
-      return std::optional<Storage>(MixedArray::from_bytes(untypedData, objectType));
-    }
-
-    default:
-      return std::nullopt;
-  }
-}
-
-// Encodes a Storage into a byte array by delegating to each subclass
-// Format: byte:t byte:o [byte]:subclass.from_bytes(i)
-std::vector<byte> Storage::to_bytes(Storage x)
-{
-  std::vector<byte> typeBytes = {(byte)x.t, (byte)x.o};
-
-  std::vector<byte> valueBytes = std::vector<byte>();
-  switch(x.t)
-  {
-    case WORD:
-    {
-      valueBytes = Word::to_bytes(x);
-      break;
-    }
-
-    case FLOAT:
-    {
-      valueBytes = Float::to_bytes(x);
-      break;
-    }
-
-    case WORD_ARRAY:
-    {
-      valueBytes = WordArray::to_bytes(x);
-      break;
-    }
-
-    case FLOAT_ARRAY:
-    {
-      valueBytes = FloatArray::to_bytes(x);
-      break;
-    }
-
-    case MIXED_ARRAY:
-    {
-      valueBytes = MixedArray::to_bytes(x);
-      break;
-    }
-
-    default:
-      return std::vector<byte>();
-  }
-
-  std::vector<byte> result(typeBytes.begin(), typeBytes.end());
-  result.insert(result.end(), valueBytes.begin(), valueBytes.end());
-  return result;
-}
 
 Storage Storage::identity(Storage i)
 {
@@ -103,25 +16,64 @@ Storage Storage::identity(Storage i)
 
 // Word
 // Storage::from_bytes decodes a byte array into a Word object
-std::optional<Storage> Word::from_bytes(std::vector<byte> x, int o)
+maybe<Storage> Word::from_bytes(bytes x, int o)
 {
-  int integer = expand_int_from_bytes(x);
-  return Word::make(integer, o);
+  varint varinteger = expand_int_from_bytes(x);
+  if(std::holds_alternative<int>(varinteger))
+  {
+    int integer = std::get<int>(varinteger);
+    return Word::make(integer, o);
+  }
+  else
+  {
+    // varint results for Words are not yet fully implemented
+    return std::nullopt;
+  }
 }
 
 // Encodes a Word into a byte array
 // Format: int:i.squeeze
-std::vector<byte> Word::to_bytes(Storage x)
+bytes Word::to_bytes(Storage x)
 {
   if(std::holds_alternative<int>(x.i))
   {
     int i = std::get<int>(x.i);
-    std::vector<byte> result = squeeze_int(i);
+    bytes result = squeeze_int(i);
     return result;
   }
   else
   {
-    return std::vector<byte>();
+    return bytes();
+  }
+}
+
+maybe<Storage> Word::from_conn(ReliableConnection conn, int o)
+{
+  varint varinteger = expand_conn(conn);
+
+  if(std::holds_alternative<int>(varinteger))
+  {
+    int integer = std::get<int>(varinteger);
+    return maybe<Storage>(Word::make(integer, o));
+  }
+  else
+  {
+    ints integers = std::get<ints>(varinteger);
+    return maybe<Storage>(WordArray::make(integers, o));
+  }
+}
+
+void Word::to_conn(ReliableConnection conn, Storage x)
+{
+  if(std::holds_alternative<int>(x.i))
+  {
+    // Always include type in to_conn implementation
+    conn.write({(byte)x.t, (byte)x.o});
+
+    int i = std::get<int>(x.i);
+    bytes result = squeeze_int(i);
+
+    conn.write(result);
   }
 }
 
@@ -132,26 +84,83 @@ Storage Word::make(int x, int o)
 
 // Float
 // Storage::from_bytes decodes a byte array into a Float object
-std::optional<Storage> Float::from_bytes(std::vector<byte> x, int o)
+maybe<Storage> Float::from_bytes(bytes x, int o)
 {
-  std::tuple<int, std::vector<byte>> expanded = expand_int(x);
-  int integer = std::get<0>(expanded);
+  maybe<floating> maybeFloating = expand_floating(x);
 
-  return std::optional(Storage(o, WORD, integer));
+  if(maybeFloating)
+  {
+    float f;
+    if(std::holds_alternative<float>(*maybeFloating))
+    {
+      f = std::get<float>(*maybeFloating);
+    }
+    else
+    {
+      double d = (float)std::get<double>(*maybeFloating);
+      f = (float)d;
+    }
+
+    return maybe<Storage>(Float::make(f, o));
+  }
+  else
+  {
+    return std::nullopt;
+  }
 }
 
 // Encodes a Float into a byte array
-// Format: i.IEEE<32|64> - FIXME - relies on sizeof(float)
-std::vector<byte> Float::to_bytes(Storage x)
+// Format: IEEE Float
+maybe<bytes> Float::to_bytes(Storage x)
 {
   if(std::holds_alternative<float>(x.i))
   {
     float i = std::get<float>(x.i);
-    return squeeze_float(i);
+
+    return maybe<bytes>(squeeze_floating(floating(i)));
   }
   else
   {
-    return std::vector<byte>();
+    return std::nullopt;
+  }
+}
+
+maybe<Storage> Float::from_conn(ReliableConnection conn, int o)
+{
+  maybe<floating> maybeFloating = expand_conn_floating(conn);
+
+  if(maybeFloating)
+  {
+    if(std::holds_alternative<float>(*maybeFloating))
+    {
+      float f = std::get<float>(*maybeFloating);
+
+      return maybe<Storage>(Float::make(f, o));
+    }
+    else
+    {
+      double d = std::get<double>(*maybeFloating);
+
+      return maybe<Storage>(Float::make((float)d, o));
+    }
+  }
+  else
+  {
+    return std::nullopt;
+  }
+}
+
+void Float::to_conn(ReliableConnection conn, Storage x)
+{
+  if(std::holds_alternative<float>(x.i))
+  {
+    // Always include type in to_conn implementation
+    conn.write({(byte)x.t, (byte)x.o});
+
+    float i = std::get<float>(x.i);
+
+    bytes result = squeeze_floating(floating(i));
+    conn.write(result);
   }
 }
 
@@ -162,108 +171,203 @@ Storage Float::make(float x, int o)
 
 // WordArray
 // Storage::from_bytes decodes a byte array into a WordArray object
-std::optional<Storage> WordArray::from_bytes(std::vector<byte> x, int o)
+maybe<Storage> WordArray::from_bytes(bytes x, int o)
 {
-  return std::optional(Storage(0, WORD, 0));
+  // FIXME
+  return maybe<Storage>(Storage(0, WORD, 0));
 }
 
 // Encodes a WordArray into a byte array
 // Format: {(size x) squeeze) join x} (i each {x squeeze} over join)
-std::vector<byte> WordArray::to_bytes(Storage x)
+bytes WordArray::to_bytes(Storage x)
 {
-  if(std::holds_alternative<std::vector<int>>(x.i))
+  if(std::holds_alternative<ints>(x.i))
   {
-    std::vector<int> i = std::get<std::vector<int>>(x.i);
-    return squeeze_ints(i);
+    bytes result = bytes();
+
+    ints i = std::get<ints>(x.i);
+
+    int length = i.size();
+    bytes lengthBytes = squeeze_int(length);
+
+    result.insert(result.begin(), lengthBytes.begin(), lengthBytes.end());
+
+    for(int integer : i)
+    {
+      bytes integerBytes = squeeze_int(integer);
+      result.insert(result.end(), integerBytes.begin(), integerBytes.end());
+    }
+
+    return result;
   }
   else
   {
-    return std::vector<byte>();
+    return bytes();
   }
 }
 
-Storage WordArray::make(std::vector<int> x, int o)
+maybe<Storage> WordArray::from_conn(ReliableConnection conn, int o)
+{
+  varint varsize = expand_conn(conn);
+  if(std::holds_alternative<int>(varsize))
+  {
+    int size = std::get<int>(varsize);
+
+    ints i = ints();
+
+    for(int y=0; y<size; y++)
+    {
+      varint varinteger = expand_conn(conn);
+      if(std::holds_alternative<int>(varinteger))
+      {
+        int integer = std::get<int>(varinteger);
+        i.push_back(integer);
+      }
+      else
+      {
+        // Varint elemenets in Word arrays not yet supported
+        return std::nullopt;
+      }
+    }
+
+    return WordArray::make(i, o);
+  }
+  else
+  {
+    // Varint sizes not yet fully implemented
+    return std::nullopt;
+  }
+}
+
+void WordArray::to_conn(ReliableConnection conn, Storage x)
+{
+  if(std::holds_alternative<ints>(x.i))
+  {
+    // Always include type in to_conn implementation
+    conn.write({(byte)x.t, (byte)x.o});
+
+    ints i = std::get<ints>(x.i);
+
+    int length = i.size();
+    bytes lengthBytes = squeeze_int(length);
+
+    conn.write(lengthBytes);
+
+    for(int integer : i)
+    {
+      bytes integerBytes = squeeze_int(integer);
+      conn.write(integerBytes);
+    }
+  }
+}
+
+Storage WordArray::make(ints x, int o)
 {
   return Storage(o, WORD_ARRAY, x);
 }
 
 // FloatArray
-std::optional<Storage> FloatArray::from_bytes(std::vector<byte> x, int o)
+maybe<Storage> FloatArray::from_bytes(bytes x, int o)
 {
-  return std::optional(Storage(0, WORD, 0));
+  // FIXME
+  return std::nullopt;
 }
 
 // Encodes a FloatArray into a byte array
 // Format: {(size x) squeeze) join x} (i each {x IEEE<32|64>} over join)
-std::vector<byte> FloatArray::to_bytes(Storage x)
+bytes FloatArray::to_bytes(Storage x)
 {
-  if(std::holds_alternative<std::vector<int>>(x.i))
+  if(std::holds_alternative<floats>(x.i))
   {
-    std::vector<float> i = std::get<std::vector<float>>(x.i);
-    return squeeze_floats(i);
+    bytes result = bytes();
+
+    floats i = std::get<floats>(x.i);
+
+    int length = i.size();
+    bytes lengthBytes = squeeze_int(length);
+
+    result.insert(result.begin(), lengthBytes.begin(), lengthBytes.end());
+
+    for(float f : i)
+    {
+      bytes integerBytes = squeeze_floating(floating(f));
+      result.insert(result.end(), integerBytes.begin(), integerBytes.end());
+    }
+
+    return result;
   }
   else
   {
-    return std::vector<byte>();
+    return bytes();
   }
 }
 
-Storage FloatArray::make(std::vector<float> x, int o)
+maybe<Storage> FloatArray::from_conn(ReliableConnection conn, int o)
+{
+  varint varsize = expand_conn(conn);
+  if(std::holds_alternative<int>(varsize))
+  {
+    int size = std::get<int>(varsize);
+
+    floats fs = floats();
+
+    for(int y=0; y<size; y++)
+    {
+      maybe<floating> maybeFloating = expand_conn_floating(conn);
+      
+      if(maybeFloating)
+      {
+        if(std::holds_alternative<float>(*maybeFloating))
+        {
+          float f = std::get<float>(*maybeFloating);
+          fs.push_back(f);
+        }
+        else
+        {
+          double d = std::get<double>(*maybeFloating);
+          fs.push_back((float)d);
+        }
+      }
+      else
+      {
+        return std::nullopt;
+      }
+    }
+
+    return FloatArray::make(fs, o);
+  }
+  else
+  {
+    // Varint sizes not yet fully implemented
+    return std::nullopt;
+  }
+}
+
+void FloatArray::to_conn(ReliableConnection conn, Storage x)
+{
+  if(std::holds_alternative<ints>(x.i))
+  {    
+    ints i = std::get<ints>(x.i);
+
+    // Always include type in to_conn implementation
+    conn.write({(byte)x.t, (byte)x.o});
+
+    int length = i.size();
+    bytes lengthBytes = squeeze_int(length);
+
+    conn.write(lengthBytes);
+
+    for(int integer : i)
+    {
+      bytes integerBytes = squeeze_int(integer);
+      conn.write(integerBytes);
+    }
+  }
+}
+
+Storage FloatArray::make(floats x, int o)
 {
   return Storage(o, FLOAT_ARRAY, x);
 }
 
-// MixedArray
-// Storage::from_bytes decodes a byte array into a MixedArray object
-std::optional<Storage> MixedArray::from_bytes(std::vector<byte> x, int o)
-{
-  return std::optional(Storage(0, WORD, 0));
-}
-
-// Encodes a MixedArray into a byte array
-// Format: {(size x) squeeze) join x} (i each {x to_bytes} over join)
-std::vector<byte> MixedArray::to_bytes(Storage x)
-{
-  if(std::holds_alternative<std::vector<Storage>>(x.i))
-  {
-    std::vector<byte> r = {(byte)x.t, (byte)x.o};
-
-    std::vector<Storage> i = std::get<std::vector<Storage>>(x.i);
-
-    // The only case where the length can be zero is for the number 0.
-    if(i.size() == 0)
-    {
-      return r;
-    }
-
-  int size = i.size();
-  std::vector<byte> sizeBytes = squeeze_int(size);
-
-  r.insert(r.begin(), sizeBytes.begin(), sizeBytes.end());
-
-  for(Storage y : i)
-  {
-    std::vector<byte> valueBytes = Storage::to_bytes(y);
-    r.insert(r.end(), valueBytes.begin(), valueBytes.end());
-  }
-
-  return r;
-
-
-
-    std::vector<byte> valueBytes(sizeof(float));
-    memcpy(valueBytes.data(), &i, sizeof(float));
-    
-    r.insert(r.begin(), valueBytes.begin(), valueBytes.end());
-    return r;
-  }
-  else
-  {
-    return std::vector<byte>();
-  }
-}
-
-Storage MixedArray::make(std::vector<Storage> x, int o)
-{
-  return Storage(o, MIXED_ARRAY, x);
-}
+// Note: MixedArray is defined in noun.h because it needs access to the Noun serialization API
