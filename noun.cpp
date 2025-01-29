@@ -15,6 +15,8 @@ void Noun::initialize()
   Integer::initialize();
   Real::initialize();
   List::initialize();
+  Character::initialize();
+  IotaString::initialize();
 }
 
 // Dispatch
@@ -205,7 +207,44 @@ maybe<Storage> Noun::from_bytes(bytes x)
       return maybe<Storage>(List::from_bytes(untypedData, o));
     }
 
+    case CHARACTER:
+    {
+      return maybe<Storage>(Character::from_bytes(untypedData, o));
+    }
+
+    case STRING:
+    {
+      return maybe<Storage>(IotaString::from_bytes(untypedData, o));
+    }
     default:
+      switch(t)
+      {
+        case WORD:
+        {
+          return maybe<Storage>(Word::from_bytes(untypedData, o)); 
+        }
+
+        case FLOAT:
+        {
+          return maybe<Storage>(Float::from_bytes(untypedData, o)); 
+        }
+
+        case WORD_ARRAY:
+        {
+          return maybe<Storage>(WordArray::from_bytes(untypedData, o)); 
+        }
+
+        case FLOAT_ARRAY:
+        {
+          return maybe<Storage>(FloatArray::from_bytes(untypedData, o)); 
+        }
+
+        case MIXED_ARRAY:
+        {
+          return maybe<Storage>(MixedArray::from_bytes(untypedData, o)); 
+        }
+      }
+
       return std::nullopt;
   }
 }
@@ -262,6 +301,34 @@ bytes Noun::to_bytes(Storage x)
       }
     }
 
+    case CHARACTER:
+    {
+      maybe<bytes> maybeValueBytes = Character::to_bytes(x);
+      if(maybeValueBytes)
+      {
+        valueBytes = *maybeValueBytes;
+        break;
+      }
+      else
+      {
+        return bytes();
+      }
+    }
+
+    case STRING:
+    {
+      maybe<bytes> maybeValueBytes = IotaString::to_bytes(x);
+      if(maybeValueBytes)
+      {
+        valueBytes = *maybeValueBytes;
+        break;
+      }
+      else
+      {
+        return bytes();
+      }
+    }
+
     default:
       return bytes();
   }
@@ -286,6 +353,12 @@ maybe<Storage> Noun::from_conn(ReliableConnection conn)
 
     case LIST:
       return maybe<Storage>(List::from_conn(conn, storageType));
+
+    case CHARACTER:
+      return maybe<Storage>(Character::from_conn(conn, storageType));
+
+    case STRING:
+      return maybe<Storage>(IotaString::from_conn(conn, storageType));
 
     default:
       return std::nullopt;
@@ -312,6 +385,18 @@ void Noun::to_conn(ReliableConnection conn, Storage x)
     case LIST:
     {
       List::to_conn(conn, x);
+      return;
+    }
+
+    case CHARACTER:
+    {
+      Character::to_conn(conn, x);
+      return;
+    }
+
+    case STRING:
+    {
+      IotaString::to_conn(conn, x);
       return;
     }
 
@@ -619,6 +704,173 @@ void List::to_conn(ReliableConnection conn, Storage i)
       MixedArray::to_conn(conn, i);
     }
       
+    default:
+      return;
+  }
+}
+
+// Character
+void Character::initialize()
+{
+  Noun::registerMonad(WORD, CHARACTER, Monads::evaluate, Storage::identity);  
+  Noun::registerMonad(WORD_ARRAY, CHARACTER, Monads::evaluate, Storage::identity);  
+}
+
+// Serialization
+maybe<Storage> Character::from_bytes(bytes bs, int t)
+{
+  switch(t)
+  {
+    case WORD:
+      return Word::from_bytes(bs, CHARACTER);
+
+    default:
+      return std::nullopt;
+  }
+}
+
+maybe<bytes> Character::to_bytes(Storage i)
+{
+  if(i.o != CHARACTER)
+  {
+    return std::nullopt;
+  }
+  
+  switch(i.t)
+  {
+    case WORD:
+      return Word::to_bytes(i);
+
+    case WORD_ARRAY:
+      if(std::holds_alternative<ints>(i.i))
+      {
+        ints integers = std::get<ints>(i.i);
+        return squeeze_bigint(integers);
+      }
+      else
+      {
+        return std::nullopt;
+      }
+      
+    default:
+      return std::nullopt;
+  }
+}
+
+maybe<Storage> Character::from_conn(ReliableConnection conn, int t)
+{
+  switch(t)
+  {
+    case WORD:
+      return Word::from_conn(conn, CHARACTER);
+
+    // FIXME - add support for WORD_ARRAY to represent grapheme clusters
+
+    default:
+      return std::nullopt;
+  }  
+}
+
+void Character::to_conn(ReliableConnection conn, Storage i)
+{
+  if(i.o != CHARACTER)
+  {
+    return;
+  }
+
+  switch(i.t)
+  {
+    case WORD:
+    {
+      // No need to include type here because it is provided by Word::to_conn
+      return Word::to_conn(conn, i);
+    }
+
+    case WORD_ARRAY:
+    {
+      if(std::holds_alternative<ints>(i.i))
+      {
+        ints integers = std::get<ints>(i.i);
+        bytes intBytes = squeeze_bigint(integers);
+
+        // Note that we always send INTEGERs and WORDs, even if we internally represent them as WORD_ARRAYs.
+        conn.write({(byte)WORD, (byte)i.o});
+        conn.write(intBytes);
+      }
+      else
+      {
+        return;
+      }
+    }
+ 
+    default:
+      return;
+  }
+}
+
+// String
+void IotaString::initialize()
+{
+  Noun::registerMonad(WORD_ARRAY, STRING, Monads::evaluate, Storage::identity);  
+}
+
+// Serialization
+maybe<Storage> IotaString::from_bytes(bytes bs, int t)
+{
+  switch(t)
+  {
+    case WORD_ARRAY:
+      return WordArray::from_bytes(bs, STRING);
+
+    default:
+      return std::nullopt;
+  }
+}
+
+maybe<bytes> IotaString::to_bytes(Storage i)
+{
+  if(i.o != STRING)
+  {
+    return std::nullopt;
+  }
+  
+  switch(i.t)
+  {
+    case WORD_ARRAY:
+      return WordArray::to_bytes(i);
+      
+    default:
+      return std::nullopt;
+  }
+}
+
+maybe<Storage> IotaString::from_conn(ReliableConnection conn, int t)
+{
+  switch(t)
+  {
+    case WORD_ARRAY:
+      return WordArray::from_conn(conn, STRING);
+
+    default:
+      return std::nullopt;
+  }  
+}
+
+void IotaString::to_conn(ReliableConnection conn, Storage i)
+{
+  if(i.o != STRING)
+  {
+    return;
+  }
+
+  switch(i.t)
+  {
+    case WORD_ARRAY:
+    {
+      // No need to include type here because it is provided by Word::to_conn
+      return WordArray::to_conn(conn, i);
+    }
+ 
     default:
       return;
   }

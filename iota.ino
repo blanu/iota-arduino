@@ -1,14 +1,11 @@
 #include <Arduino.h>
 #include <Adafruit_NeoPixel.h>
-// #include "error.h"
-// #include "squeeze.h"
-// #include "storage.h"
 #include "SerialConnection.h"
 #include "register.h"
-// #include <optional>
+#include "types.h"
 
 SerialConnection conn = SerialConnection();
-// EvalRegister eval_register = EvalRegister();
+EvalRegister eval_register = EvalRegister();
 
 Adafruit_NeoPixel pixels(1, 8, NEO_GRB + NEO_KHZ800);
 
@@ -32,7 +29,15 @@ void loop()
   if(storage)
   {
     blink(255, 255, 255, 5, 150, 50);
-    conn.write_storage(*storage);
+
+    eval_register.store_i(*storage);
+    eval_register.eval();
+    maybe<Storage> result = eval_register.fetch_r();
+
+    if(result)
+    {
+      conn.write_storage(*result);
+    }
   }
   else
   {

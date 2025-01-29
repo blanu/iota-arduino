@@ -44,12 +44,6 @@ class Noun
     static maybe<Storage> from_conn(ReliableConnection conn);
     static void to_conn(ReliableConnection conn, Storage x);
 
-    // Character serialization
-    static maybe<bytes> character_to_bytes(Storage i);
-    static maybe<Storage> list_from_bytes(bytes bs, int t);
-    static void list_to_conn(ReliableConnection conn, Storage i);
-    static maybe<Storage> list_from_conn(ReliableConnection conn, int t);
-
     private:
       static std::map<Specialization3, Monad> monads;
       static std::map<Specialization5, Dyad> dyads;
@@ -85,6 +79,32 @@ class Real
 };
 
 class List
+{
+  public:
+    // Initialize dispatch table
+    static void initialize();
+
+    // Serialization
+    static maybe<bytes> to_bytes(Storage i);
+    static maybe<Storage> from_bytes(bytes bs, int t);
+    static void to_conn(ReliableConnection conn, Storage i);
+    static maybe<Storage> from_conn(ReliableConnection conn, int t);
+};
+
+class Character
+{
+  public:
+    // Initialize dispatch table
+    static void initialize();
+
+    // Serialization
+    static maybe<bytes> to_bytes(Storage i);
+    static maybe<Storage> from_bytes(bytes bs, int t);
+    static void to_conn(ReliableConnection conn, Storage i);
+    static maybe<Storage> from_conn(ReliableConnection conn, int t);
+};
+
+class IotaString
 {
   public:
     // Initialize dispatch table

@@ -2,6 +2,7 @@
 #define _API_H_
 
 #include "storage.h"
+#include "types.h"
 
 // SymbolType
 class SymbolType
@@ -27,5 +28,7 @@ Storage c();
 
 Storage test_error();
 const char *error_to_string(Storage error);
+
+maybe<Storage> eval(Storage x);
 
 #endif
