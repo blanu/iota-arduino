@@ -4,6 +4,11 @@
 #include "symbols.h"
 #include "noun.h"
 
+void EvalRegister::initialize()
+{
+  Noun::initialize();
+}
+
 void EvalRegister::store_i(Storage newI)
 {
   i = newI;
@@ -43,6 +48,6 @@ maybe<bytes> EvalRegister::retrieve_r()
 
 void EvalRegister::eval()
 {
-  r = Noun::dispatchMonad(i, Word::make(Monads::evaluate, BUILTIN_MONAD));
+  r = Noun::dispatchMonad(i, Word::make(Monads::evaluate, NounType::BUILTIN_MONAD));
 }
 

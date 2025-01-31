@@ -11,33 +11,40 @@
 #include "types.h"
 
 // StorageType
-#define WORD 0
-#define FLOAT 1
-#define WORD_ARRAY 2 // all integers
-#define FLOAT_ARRAY 3 // all floats
-#define MIXED_ARRAY 4 // array of storage types
+class StorageType
+{
+  public:
+    static const int WORD = 0;
+    static const int FLOAT = 1;
+    static const int WORD_ARRAY = 2;  // all integers
+    static const int FLOAT_ARRAY = 3; // all floats
+    static const int MIXED_ARRAY = 4; // array of storage types
+};
 
-// NounType
-#define INTEGER 0
-#define REAL 1
-#define CHARACTER 2
-#define STRING 3
-#define LIST 4
-#define DICTIONARY 5
-#define BUILTIN_SYMBOL 6
-#define BUILTIN_MONAD 7
-#define BUILTIN_DYAD 8
-#define BUILTIN_TRIAD 9
-#define MONADIC_ADVERB 10
-#define DYADIC_ADVERB 11
-#define USER_SYMBOL 12
-#define USER_MONAD 13
-#define USER_DYAD 14
-#define USER_TRIAD 15
-#define ERROR 16
-#define EXPRESSION 17
-#define TYPE 18
-#define CONDITIONAL 19
+class NounType
+{
+  public:
+    static const int INTEGER = 0;
+    static const int REAL = 1;
+    static const int CHARACTER = 2;
+    static const int STRING = 3;
+    static const int LIST = 4;
+    static const int DICTIONARY = 5;
+    static const int BUILTIN_SYMBOL = 6;
+    static const int BUILTIN_MONAD = 7;
+    static const int BUILTIN_DYAD = 8;
+    static const int BUILTIN_TRIAD = 9;
+    static const int MONADIC_ADVERB = 10;
+    static const int DYADIC_ADVERB = 11;
+    static const int USER_SYMBOL = 12;
+    static const int USER_MONAD = 13;
+    static const int USER_DYAD = 14;
+    static const int USER_TRIAD = 15;
+    static const int ERROR = 16;
+    static const int EXPRESSION = 17;
+    static const int TYPE = 18;
+    static const int CONDITIONAL = 19;
+};
 
 class Storage;
 
@@ -109,6 +116,6 @@ class FloatArray
     static Storage make(floats x, int o);
 };
 
-// Note: MixedArray is defined in noun.h because it needs access to the Noun serialization API
+// Note: MixedArray is static Storageined in noun.h because it needs access to the Noun serialization API
 
 #endif

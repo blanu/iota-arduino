@@ -5,18 +5,16 @@
 #include <optional>
 #include "storage.h"
 #include "noun.h"
+#include "debug.h"
 
 class EvalRegister;
 
 class EvalRegister
 {
   public:
-    static void initialize()
-    {
-      Noun::initialize();
-    }
+    static void initialize();
 
-    EvalRegister() : i(Word::make(0, INTEGER)), r(std::nullopt) {}
+    EvalRegister() : i(Word::make(0, NounType::INTEGER)), r(std::nullopt) {}
     EvalRegister(Storage i) : i(i), r(std::nullopt) {}
 
     void store_i(Storage newI);

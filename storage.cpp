@@ -1,7 +1,7 @@
+#include <Arduino.h>
 #include <vector>
 #include <variant>
 #include <tuple>
-#include <Arduino.h>
 #include <stdint.h>
 
 #include "types.h"
@@ -79,7 +79,7 @@ void Word::to_conn(ReliableConnection conn, Storage x)
 
 Storage Word::make(int x, int o)
 {
-  return Storage(o, WORD, x);
+  return Storage(o, StorageType::WORD, x);
 }
 
 // Float
@@ -166,7 +166,7 @@ void Float::to_conn(ReliableConnection conn, Storage x)
 
 Storage Float::make(float x, int o)
 {
-  return Storage(o, FLOAT, x);
+  return Storage(o, StorageType::FLOAT, x);
 }
 
 // WordArray
@@ -174,7 +174,7 @@ Storage Float::make(float x, int o)
 maybe<Storage> WordArray::from_bytes(bytes x, int o)
 {
   // FIXME
-  return maybe<Storage>(Storage(0, WORD, 0));
+  return maybe<Storage>(Storage(0, StorageType::WORD, 0));
 }
 
 // Encodes a WordArray into a byte array
@@ -263,7 +263,7 @@ void WordArray::to_conn(ReliableConnection conn, Storage x)
 
 Storage WordArray::make(ints x, int o)
 {
-  return Storage(o, WORD_ARRAY, x);
+  return Storage(o, StorageType::WORD_ARRAY, x);
 }
 
 // FloatArray
@@ -367,7 +367,7 @@ void FloatArray::to_conn(ReliableConnection conn, Storage x)
 
 Storage FloatArray::make(floats x, int o)
 {
-  return Storage(o, FLOAT_ARRAY, x);
+  return Storage(o, StorageType::FLOAT_ARRAY, x);
 }
 
 // Note: MixedArray is defined in noun.h because it needs access to the Noun serialization API

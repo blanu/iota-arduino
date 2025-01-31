@@ -16,17 +16,17 @@ Storage c()
 
 Storage test_error()
 {
-  return Word::make(TEST_ERROR, ERROR);
+  return Word::make(TEST_ERROR, NounType::ERROR);
 }
 
 const char *error_to_string(Storage e)
 {
-  if(e.o != ERROR)
+  if(e.o != NounType::ERROR)
   {
     return NULL;
   }
 
-  if(e.t != WORD)
+  if(e.t != StorageType::WORD)
   {
     return NULL;
   }

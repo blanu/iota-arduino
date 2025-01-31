@@ -16,7 +16,7 @@ class Monads
     static const int gradeDown = 8;
     static const int gradeUp = 9;
     static const int group = 10;
-    static const int negate= 11;
+    static const int negate = 11;
     static const int reciprocal = 12;
     static const int reverse = 13;
     static const int shape = 14;

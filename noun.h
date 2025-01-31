@@ -12,6 +12,12 @@
 #include "storage.h"
 #include "ReliableConnection.h"
 
+// Extension Monads
+
+Storage evaluate(Storage i);
+Storage erase(Storage i);
+Storage truth(Storage i);
+
 using Symbol = int;
 using Specialization3 = std::tuple<Symbol, Symbol, Symbol>;
 using Specialization5 = std::tuple<Symbol, Symbol, Symbol, Symbol, Symbol>;
@@ -38,6 +44,13 @@ class Noun
     static void registerMonadicAdverb(Symbol it, Symbol io, Symbol f, Storage (*a)(Storage, Storage));
     static void registerDyadicAdverb(Symbol it, Symbol io, Symbol f, Symbol xt, Symbol xo, Storage (*a)(Storage, Storage, Storage));
 
+    // Convenience Monads
+    static Storage true_impl(Storage i);
+    static Storage false_impl(Storage i);
+
+    // Extension Monads
+    static Storage evaluate_expression(Storage e);
+
     // General serialization
     static maybe<Storage> from_bytes(bytes data);
     static bytes to_bytes(Storage storage);
@@ -57,6 +70,10 @@ class Integer
   public:
     // Initialize dispatch table
     static void initialize();
+
+    // Monads
+    static Storage char_impl(Storage i);    
+    static Storage negate_impl(Storage i);    
 
     // Serialization
     static maybe<bytes> to_bytes(Storage i);
@@ -83,6 +100,10 @@ class List
   public:
     // Initialize dispatch table
     static void initialize();
+
+    // Monads
+    static Storage atom_impl(Storage i);    
+    static Storage char_impl(Storage i);    
 
     // Serialization
     static maybe<bytes> to_bytes(Storage i);
@@ -115,6 +136,15 @@ class IotaString
     static maybe<Storage> from_bytes(bytes bs, int t);
     static void to_conn(ReliableConnection conn, Storage i);
     static maybe<Storage> from_conn(ReliableConnection conn, int t);
+};
+
+class Expression
+{
+  public:
+    // Initialize dispatch table
+    static void initialize();
+
+    static Storage truth(Storage i);
 };
 
 // Note: MixedArray is defined in noun.h because it needs access to the Noun serialization API
