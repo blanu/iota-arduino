@@ -7,7 +7,7 @@ class Monads
   public:
     static const int atom = 0;
     static const int ichar = 1;
-    static const int complementation = 2;
+    static const int inot = 2;
     static const int enclose = 3;
     static const int enumerate = 4;
     static const int first = 5;

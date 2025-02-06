@@ -62,11 +62,21 @@ class Storage
 
     Storage(int o, int t, I x) : o(o), t(t), i(x) {}
 
+    int truth();
+
     bool operator==(const Storage& other) const
     {
         return (o == other.o) && (t == other.t) && (i == other.i);
     }
 };
+
+// FIXME - implement general hash function for Storage
+// struct StorageHash {
+//     std::size_t operator()(const Storage& i) const
+//     {
+//         return std::hash<int>()(i.t) ^ (std::hash<int>()(i.o) ^ std::hash<I>()(i.i) << 1);
+//     }
+// };
 
 class Word
 {
@@ -83,6 +93,8 @@ class Word
 class Float
 {
   public:
+    static constexpr float tolerance = 1e-14f;
+
     static maybe<Storage> from_bytes(bytes data, int o);
     static maybe<bytes> to_bytes(Storage storage);
 
@@ -95,6 +107,8 @@ class Float
 class WordArray
 {
   public:
+    static Storage nil();
+
     static maybe<Storage> from_bytes(bytes data, int o);
     static bytes to_bytes(Storage storage);
 

@@ -14,6 +14,36 @@ Storage Storage::identity(Storage i)
   return i;
 }
 
+int Storage::truth()
+{
+  switch(o)
+  {
+    case NounType::INTEGER:
+      switch(t)
+      {
+        case StorageType::WORD:
+          if(std::holds_alternative<int>(i))
+          {
+            int integer = std::get<int>(i);
+
+            return integer != 0;
+          }
+          else
+          {
+            return 0;
+          }
+
+        // FIXME - support bigints
+
+        default:
+          return 0;
+      }
+
+    default:
+      return 0;
+  }
+}
+
 // Word
 // Storage::from_bytes decodes a byte array into a Word object
 maybe<Storage> Word::from_bytes(bytes x, int o)
@@ -170,6 +200,11 @@ Storage Float::make(float x, int o)
 }
 
 // WordArray
+Storage WordArray::nil()
+{
+  return WordArray::make(ints(), NounType::LIST);
+}
+
 // Storage::from_bytes decodes a byte array into a WordArray object
 maybe<Storage> WordArray::from_bytes(bytes x, int o)
 {
