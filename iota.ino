@@ -1,5 +1,4 @@
 #include <Arduino.h>
-#include <Adafruit_NeoPixel.h>
 #include "SerialConnection.h"
 #include "register.h"
 #include "types.h"
@@ -7,8 +6,6 @@
 
 SerialConnection conn = SerialConnection();
 EvalRegister eval_register = EvalRegister();
-
-Adafruit_NeoPixel pixels(1, 8, NEO_GRB + NEO_KHZ800);
 
 void setup()
 {
@@ -43,8 +40,6 @@ void blink(byte r, byte g, byte b, int count, int onTime, int offTime)
   for(int x=0; x<count; x++)
   {
     digitalWrite(D13, HIGH);
-    pixels.setPixelColor(0, pixels.Color(r, g, b));
-    pixels.show();
     delay(onTime);
 
     digitalWrite(D13, LOW);

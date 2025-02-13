@@ -37,10 +37,21 @@ Storage erase(Storage i);
 Storage truth(Storage i);
 
 // Dyads
+Storage cut(Storage i, Storage x);
 Storage divide(Storage i, Storage x);
+Storage drop(Storage i, Storage x);
+Storage equal(Storage i, Storage x);
+Storage find(Storage i, Storage x);
+Storage index(Storage i, Storage x);
+Storage join(Storage i, Storage x);
 Storage less(Storage i, Storage x);
 Storage match(Storage i, Storage x);
+Storage max(Storage i, Storage x);
+Storage min(Storage i, Storage x);
+Storage minus(Storage i, Storage x);
 Storage more(Storage i, Storage x);
+Storage plus(Storage i, Storage x);
+Storage power(Storage i, Storage x);
 
 using Symbol = int;
 using Specialization3 = std::tuple<Symbol, Symbol, Symbol>;
@@ -74,11 +85,25 @@ class Noun
 
     // Extension Monads
     static Storage evaluate_expression(Storage e);
+    static Storage mix(Storage i);
 
-    // Convenience Monads
-    static Storage true_impl(Storage i);
-    static Storage false_impl(Storage i);
+    static Storage true0();
+    static Storage true1(Storage i);
+    static Storage true2(Storage i, Storage x);
+    static Storage false0();
+    static Storage false1(Storage i);
+    static Storage false2(Storage i, Storage x);
     static Storage identity(Storage i);
+
+    // Extension Dyads
+    static Storage join_scalar(Storage i, Storage x);
+    static Storage prepend(Storage i, Storage x);
+    static Storage append(Storage i, Storage x);
+    static Storage join_mixed(Storage i, Storage x);
+    static Storage join_mix_left(Storage i, Storage x);
+    static Storage join_mix_right(Storage i, Storage x);
+    static Storage join_mix_enclose(Storage i, Storage x);
+    static Storage join_enclose_mix(Storage i, Storage x);
 
     // General serialization
     static maybe<Storage> from_bytes(bytes data);
@@ -113,19 +138,39 @@ class Integer
 
     // Dyads
     static Storage cut_integers(Storage i, Storage x);
-    // static Storage cut_reals(Storage i, Storage x);
-    // static Storage cut_mixed(Storage i, Storage x);
+    static Storage cut_reals(Storage i, Storage x);
+    static Storage cut_mixed(Storage i, Storage x);
     static Storage divide_integer(Storage i, Storage x);
     static Storage divide_real(Storage i, Storage x);
     static Storage divide_integers(Storage i, Storage x);
     static Storage divide_reals(Storage i, Storage x);
     static Storage divide_mixed(Storage i, Storage x);
+    static Storage equal_impl(Storage i, Storage x);
+    static Storage integerDivide_impl(Storage i, Storage x);
+    static Storage join_integer(Storage i, Storage x);
+    static Storage prepend_to_integers(Storage i, Storage x);
     static Storage less_integer(Storage i, Storage x);
     static Storage less_real(Storage i, Storage x);
     static Storage less_list(Storage i, Storage x);
+    static Storage match_impl(Storage i, Storage x);
+    static Storage max_integer(Storage i, Storage x);
+    static Storage max_real(Storage i, Storage x);
+    static Storage max_list(Storage i, Storage x);
+    static Storage min_integer(Storage i, Storage x);
+    static Storage min_real(Storage i, Storage x);
+    static Storage min_list(Storage i, Storage x);
+    static Storage minus_integer(Storage i, Storage x);
+    static Storage minus_real(Storage i, Storage x);
+    static Storage minus_list(Storage i, Storage x);
     static Storage more_integer(Storage i, Storage x);
     static Storage more_real(Storage i, Storage x);
     static Storage more_list(Storage i, Storage x);
+    static Storage plus_integer(Storage i, Storage x);
+    static Storage plus_real(Storage i, Storage x);
+    static Storage plus_list(Storage i, Storage x);
+    static Storage power_integer(Storage i, Storage x);
+    static Storage power_real(Storage i, Storage x);
+    static Storage power_list(Storage i, Storage x);
 
     // Serialization
     static maybe<bytes> to_bytes(Storage i);
@@ -154,12 +199,30 @@ class Real
     static Storage divide_integers(Storage i, Storage x);
     static Storage divide_reals(Storage i, Storage x);
     static Storage divide_mixed(Storage i, Storage x);
+    static Storage join_real(Storage i, Storage x);
+    static Storage prepend_to_reals(Storage i, Storage x);
     static Storage less_integer(Storage i, Storage x);
     static Storage less_real(Storage i, Storage x);
     static Storage less_list(Storage i, Storage x);
+    static Storage match_impl(Storage i, Storage x);
+    static Storage max_integer(Storage i, Storage x);
+    static Storage max_real(Storage i, Storage x);
+    static Storage max_list(Storage i, Storage x);
+    static Storage min_integer(Storage i, Storage x);
+    static Storage min_real(Storage i, Storage x);
+    static Storage min_list(Storage i, Storage x);
+    static Storage minus_integer(Storage i, Storage x);
+    static Storage minus_real(Storage i, Storage x);
+    static Storage minus_list(Storage i, Storage x);
     static Storage more_integer(Storage i, Storage x);
     static Storage more_real(Storage i, Storage x);
     static Storage more_list(Storage i, Storage x);
+    static Storage plus_integer(Storage i, Storage x);
+    static Storage plus_real(Storage i, Storage x);
+    static Storage plus_list(Storage i, Storage x);
+    static Storage power_integer(Storage i, Storage x);
+    static Storage power_real(Storage i, Storage x);
+    static Storage power_list(Storage i, Storage x);
 
     // Serialization
     static maybe<bytes> to_bytes(Storage i);
@@ -192,23 +255,71 @@ class List
     static Storage unique_impl(Storage i);    
 
     // Dyads
+    static Storage cut_integer(Storage i, Storage x);
+    static Storage cut_integers(Storage i, Storage x);
     static Storage divide_integer(Storage i, Storage x);
     static Storage divide_real(Storage i, Storage x);
     static Storage divide_integers(Storage i, Storage x);
     static Storage divide_reals(Storage i, Storage x);
     static Storage divide_mixed(Storage i, Storage x);
+    static Storage drop_impl(Storage i, Storage x);
+    static Storage equal_impl(Storage i, Storage x);
+    static Storage find_impl(Storage i, Storage x);
+    static Storage index_impl(Storage i, Storage x);
+
+    // Join
+    static Storage append_integer(Storage i, Storage x);
+    static Storage append_real(Storage i, Storage x);
+    static Storage prepend_integer(Storage i, Storage x);
+    static Storage prepend_real(Storage i, Storage x);
+    static Storage join_integers(Storage i, Storage x);
+    static Storage join_integers_reals(Storage i, Storage x);
+    static Storage join_reals(Storage i, Storage x);
+    static Storage join_reals_integers(Storage i, Storage x);
+    static Storage join_mixed(Storage i, Storage x);
+
     static Storage less_integer(Storage i, Storage x);
     static Storage less_real(Storage i, Storage x);
-    static Storage less_list(Storage i, Storage x);
+    static Storage less_integers(Storage i, Storage x);
+    static Storage less_reals(Storage i, Storage x);
+    static Storage less_mixed(Storage i, Storage x);
+    static Storage match_impl(Storage i, Storage x);
+    static Storage max_integer(Storage i, Storage x);
+    static Storage max_real(Storage i, Storage x);
+    static Storage max_integers(Storage i, Storage x);
+    static Storage max_reals(Storage i, Storage x);
+    static Storage max_mixed(Storage i, Storage x);
+    static Storage min_integer(Storage i, Storage x);
+    static Storage min_real(Storage i, Storage x);
+    static Storage min_integers(Storage i, Storage x);
+    static Storage min_reals(Storage i, Storage x);
+    static Storage min_mixed(Storage i, Storage x);
+    static Storage minus_integer(Storage i, Storage x);
+    static Storage minus_real(Storage i, Storage x);
+    static Storage minus_integers(Storage i, Storage x);
+    static Storage minus_reals(Storage i, Storage x);
+    static Storage minus_mixed(Storage i, Storage x);
     static Storage more_integer(Storage i, Storage x);
     static Storage more_real(Storage i, Storage x);
-    static Storage more_list(Storage i, Storage x);
+    static Storage more_integers(Storage i, Storage x);
+    static Storage more_reals(Storage i, Storage x);
+    static Storage more_mixed(Storage i, Storage x);
+    static Storage plus_integer(Storage i, Storage x);
+    static Storage plus_real(Storage i, Storage x);
+    static Storage plus_integers(Storage i, Storage x);
+    static Storage plus_reals(Storage i, Storage x);
+    static Storage plus_mixed(Storage i, Storage x);
+    static Storage power_integer(Storage i, Storage x);
+    static Storage power_real(Storage i, Storage x);
+    static Storage power_integers(Storage i, Storage x);
+    static Storage power_reals(Storage i, Storage x);
+    static Storage power_mixed(Storage i, Storage x);
 
     // Serialization
     static maybe<bytes> to_bytes(Storage i);
     static maybe<Storage> from_bytes(bytes bs, int t);
     static void to_conn(ReliableConnection conn, Storage i);
-    static maybe<Storage> from_conn(ReliableConnection conn, int t);
+    static maybe<Storage> from_conn(ReliableConnection conn, int t);    
 };
 
 class Character
@@ -223,7 +334,14 @@ class Character
     static Storage size_impl(Storage i);    
 
     // Dyads
+    // Join
+    static Storage join_scalar(Storage i, Storage x);
+    static Storage join_character(Storage i, Storage x);
+    static Storage join_list(Storage i, Storage x);
+    static Storage prepend_string(Storage i, Storage x);
+
     static Storage less_character(Storage i, Storage x);
+    static Storage match_impl(Storage i, Storage x);
     static Storage more_character(Storage i, Storage x);
 
     // Serialization
@@ -250,6 +368,13 @@ class IotaString
 
     // Dyads
     static Storage less_string(Storage i, Storage x);
+    static Storage index_impl(Storage i, Storage x);
+    
+    // Join
+    static Storage append_character(Storage i, Storage x);
+    static Storage join_string(Storage i, Storage x);
+
+    static Storage match_impl(Storage i, Storage x);
     static Storage more_string(Storage i, Storage x);
 
     // Serialization
@@ -278,7 +403,7 @@ class MixedArray
     static maybe<Storage> from_conn(ReliableConnection conn, int objectType);
     static void to_conn(ReliableConnection conn, Storage x);
 
-    static Storage make(mixed x, int o);
+    static Storage make(mixed x, int o = NounType::LIST);
 };
 
 #endif

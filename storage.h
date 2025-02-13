@@ -87,7 +87,7 @@ class Word
     static maybe<Storage> from_conn(ReliableConnection conn, int objectType);
     static void to_conn(ReliableConnection conn, Storage i);
 
-    static Storage make(int x, int o);
+    static Storage make(int x, int o = NounType::INTEGER);
 };
 
 class Float
@@ -101,7 +101,7 @@ class Float
     static maybe<Storage> from_conn(ReliableConnection conn, int objectType);
     static void to_conn(ReliableConnection conn, Storage x);
 
-    static Storage make(float x, int o);
+    static Storage make(float x, int o = NounType::REAL);
 };
 
 class WordArray
@@ -115,7 +115,7 @@ class WordArray
     static maybe<Storage> from_conn(ReliableConnection conn, int objectType);
     static void to_conn(ReliableConnection conn, Storage i);
 
-    static Storage make(ints x, int o);
+    static Storage make(ints x, int o = NounType::LIST);
 };
 
 class FloatArray
@@ -127,7 +127,7 @@ class FloatArray
     static maybe<Storage> from_conn(ReliableConnection conn, int objectType);
     static void to_conn(ReliableConnection conn, Storage i);
 
-    static Storage make(floats x, int o);
+    static Storage make(floats x, int o = NounType::LIST);
 };
 
 // Note: MixedArray is static Storageined in noun.h because it needs access to the Noun serialization API
