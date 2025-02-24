@@ -24,6 +24,7 @@ Storage format(Storage i);
 Storage gradeDown(Storage i);
 Storage negate(Storage i);
 Storage reciprocal(Storage i);
+Storage reverse(Storage i);
 Storage shape(Storage i);
 Storage size(Storage i);
 Storage transpose(Storage i);
@@ -52,6 +53,31 @@ Storage minus(Storage i, Storage x);
 Storage more(Storage i, Storage x);
 Storage plus(Storage i, Storage x);
 Storage power(Storage i, Storage x);
+Storage remainder(Storage i, Storage x);
+Storage reshape(Storage i, Storage x);
+Storage rotate(Storage i, Storage x);
+Storage split(Storage i, Storage x);
+Storage take(Storage i, Storage x);
+Storage times(Storage i, Storage x);
+
+// Monadic Adverbs
+Storage converge(Storage i, Storage f);
+Storage each(Storage i, Storage f);
+Storage eachPair(Storage i, Storage f);
+Storage over(Storage i, Storage f);
+Storage scanConverging(Storage i, Storage f);
+Storage scanOver(Storage i, Storage f);
+
+// Dyadic Adverbs
+Storage each2(Storage i, Storage f, Storage x);
+Storage eachLeft(Storage i, Storage f, Storage x);
+Storage eachRight(Storage i, Storage f, Storage x);
+Storage overNeutral(Storage i, Storage f, Storage x);
+Storage iterate(Storage i, Storage f, Storage x);
+Storage scanIterating(Storage i, Storage f, Storage x);
+Storage scanOverNeutral(Storage i, Storage f, Storage x);
+Storage scanWhileTrue(Storage i, Storage f, Storage x);
+Storage whileTrue(Storage i, Storage f, Storage x);
 
 using Symbol = int;
 using Specialization3 = std::tuple<Symbol, Symbol, Symbol>;
@@ -65,6 +91,8 @@ using DyadicAdverb = std::function<Storage(Storage,Storage,Storage)>;
 class Noun
 {
   public:
+    static constexpr int maximumConvergeIterations = 1000;
+
     static void initialize();
 
     static Storage dispatchMonad(Storage i, Storage f);
@@ -86,6 +114,7 @@ class Noun
     // Extension Monads
     static Storage evaluate_expression(Storage e);
     static Storage mix(Storage i);
+    static Storage simplify(Storage i);
 
     static Storage true0();
     static Storage true1(Storage i);
@@ -93,7 +122,7 @@ class Noun
     static Storage false0();
     static Storage false1(Storage i);
     static Storage false2(Storage i, Storage x);
-    static Storage identity(Storage i);
+    static Storage identity1(Storage i);
 
     // Extension Dyads
     static Storage join_scalar(Storage i, Storage x);
@@ -104,6 +133,24 @@ class Noun
     static Storage join_mix_right(Storage i, Storage x);
     static Storage join_mix_enclose(Storage i, Storage x);
     static Storage join_enclose_mix(Storage i, Storage x);
+    static Storage identity2(Storage i, Storage x);
+    static Storage enclose2(Storage i, Storage x);
+
+    // Monadic Adverbs
+    static Storage converge_impl(Storage i, Storage f);
+    static Storage scanConverging_impl(Storage i, Storage f);
+
+    // Dyadic Adverbs
+    // each2
+    static Storage each2_impl(Storage i, Storage f, Storage x);
+    static Storage eachLeft_impl(Storage i, Storage f, Storage x);
+    static Storage eachRight_impl(Storage i, Storage f, Storage x);
+    static Storage overNeutral_impl(Storage i, Storage f, Storage x);
+    static Storage iterate_integer(Storage i, Storage f, Storage x);
+    static Storage scanIterating_integer(Storage i, Storage f, Storage x);
+    static Storage scanOverNeutral_impl(Storage i, Storage f, Storage x);
+    static Storage scanWhileTrue_impl(Storage i, Storage f, Storage g);
+    static Storage whileTrue_impl(Storage i, Storage f, Storage g);
 
     // General serialization
     static maybe<Storage> from_bytes(bytes data);
@@ -124,6 +171,10 @@ class Integer
   public:
     // Initialize dispatch table
     static void initialize();
+
+    static Storage make(int i);
+    static Storage zero();
+    static Storage one();
 
     // Monads
     static Storage char_impl(Storage i);    
@@ -171,6 +222,15 @@ class Integer
     static Storage power_integer(Storage i, Storage x);
     static Storage power_real(Storage i, Storage x);
     static Storage power_list(Storage i, Storage x);
+    static Storage remainder_integer(Storage i, Storage x);
+    static Storage remainder_integers(Storage i, Storage x);
+    static Storage remainder_mixed(Storage i, Storage x);
+    static Storage reshape_integer(Storage i, Storage x);
+    static Storage reshape_integers(Storage i, Storage x);
+    static Storage reshape_mixed(Storage i, Storage x);
+    static Storage times_integer(Storage i, Storage x);
+    static Storage times_real(Storage i, Storage x);
+    static Storage times_list(Storage i, Storage x);
 
     // Serialization
     static maybe<bytes> to_bytes(Storage i);
@@ -223,6 +283,12 @@ class Real
     static Storage power_integer(Storage i, Storage x);
     static Storage power_real(Storage i, Storage x);
     static Storage power_list(Storage i, Storage x);
+    static Storage reshape_integer(Storage i, Storage x);
+    static Storage reshape_integers(Storage i, Storage x);
+    static Storage reshape_mixed(Storage i, Storage x);
+    static Storage times_integer(Storage i, Storage x);
+    static Storage times_real(Storage i, Storage x);
+    static Storage times_list(Storage i, Storage x);
 
     // Serialization
     static maybe<bytes> to_bytes(Storage i);
@@ -314,6 +380,37 @@ class List
     static Storage power_integers(Storage i, Storage x);
     static Storage power_reals(Storage i, Storage x);
     static Storage power_mixed(Storage i, Storage x);
+    static Storage remainder_integer(Storage i, Storage x);
+    static Storage remainder_integers(Storage i, Storage x);
+    static Storage remainder_mixed(Storage i, Storage x);
+    static Storage reshape_integer(Storage i, Storage x);
+    static Storage reshape_integers(Storage i, Storage x);
+    static Storage reshape_mixed(Storage i, Storage x);
+    static Storage rotate_integer(Storage i, Storage x);
+    static Storage split_integer(Storage i, Storage x);
+    static Storage split_integers(Storage i, Storage x);
+    static Storage take_integer(Storage i, Storage x);
+    static Storage times_integer(Storage i, Storage x);
+    static Storage times_real(Storage i, Storage x);
+    static Storage times_integers(Storage i, Storage x);
+    static Storage times_reals(Storage i, Storage x);
+    static Storage times_mixed(Storage i, Storage x);
+
+    // Monadic Adverbs
+    static Storage each_integers(Storage i, Storage f);
+    static Storage each_reals(Storage i, Storage f);
+    static Storage each_mixed(Storage i, Storage f);
+    static Storage eachPair_integers(Storage i, Storage f);
+    static Storage eachPair_reals(Storage i, Storage f);
+    static Storage eachPair_mixed(Storage i, Storage f);
+    static Storage over_integers(Storage i, Storage f);
+    static Storage over_reals(Storage i, Storage f);
+    static Storage over_mixed(Storage i, Storage f);
+    static Storage scanOver_integers(Storage i, Storage f);
+    static Storage scanOver_reals(Storage i, Storage f);
+    static Storage scanOver_mixed(Storage i, Storage f);
+
+    // Dyadic Adverbs
 
     // Serialization
     static maybe<bytes> to_bytes(Storage i);
@@ -357,6 +454,9 @@ class IotaString
     // Initialize dispatch table
     static void initialize();
 
+    static Storage make(ints i);
+    static Storage makeEmpty();
+
     // Monads
     static Storage atom_impl(Storage i);    
     static Storage enclose_impl(Storage i);    
@@ -377,6 +477,18 @@ class IotaString
     static Storage match_impl(Storage i, Storage x);
     static Storage more_string(Storage i, Storage x);
 
+    static Storage split_integer(Storage i, Storage x);
+    static Storage split_integers(Storage i, Storage x);
+    static Storage take_integer(Storage i, Storage x);
+
+    // Monadic Adverbs
+    static Storage each_impl(Storage i, Storage f);
+    static Storage eachPair_impl(Storage i, Storage f);
+    static Storage over_impl(Storage i, Storage f);
+    static Storage scanOver_impl(Storage i, Storage f);
+
+    // Dyadic Adverbs
+
     // Serialization
     static maybe<bytes> to_bytes(Storage i);
     static maybe<Storage> from_bytes(bytes bs, int t);
@@ -391,6 +503,18 @@ class Expression
     static void initialize();
 
     static Storage truth(Storage i);
+};
+
+class Conditional
+{
+  public:
+    // Initialize dispatch table
+    static void initialize();
+
+    static Storage make(mixed i);
+
+    static Storage evaluate_impl(Storage i);
+    static Storage truth_impl(Storage i);
 };
 
 // Note: MixedArray is defined in noun.h because it needs access to the Noun serialization API

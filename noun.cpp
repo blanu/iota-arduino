@@ -74,6 +74,11 @@ Storage reciprocal(Storage i) // %a
   return Noun::dispatchMonad(i, Word::make(Monads::reciprocal, NounType::BUILTIN_MONAD));
 }
 
+Storage reverse(Storage i) // |a
+{
+  return Noun::dispatchMonad(i, Word::make(Monads::reciprocal, NounType::BUILTIN_MONAD));
+}
+
 Storage shape(Storage i) // ^a
 {
   return Noun::dispatchMonad(i, Word::make(Monads::shape, NounType::BUILTIN_MONAD));
@@ -191,6 +196,113 @@ Storage power(Storage i, Storage x) // a^b
   return Noun::dispatchDyad(i, Word::make(Dyads::power, NounType::BUILTIN_DYAD), x);
 }
 
+Storage remainder(Storage i, Storage x) // a!b
+{
+  return Noun::dispatchDyad(i, Word::make(Dyads::remainder, NounType::BUILTIN_DYAD), x);
+}
+
+Storage reshape(Storage i, Storage x) // a:^b
+{
+  return Noun::dispatchDyad(i, Word::make(Dyads::reshape, NounType::BUILTIN_DYAD), x);
+}
+
+Storage rotate(Storage i, Storage x) // a:+b
+{
+  return Noun::dispatchDyad(i, Word::make(Dyads::rotate, NounType::BUILTIN_DYAD), x);
+}
+
+Storage split(Storage i, Storage x) // a:#b
+{
+  return Noun::dispatchDyad(i, Word::make(Dyads::split, NounType::BUILTIN_DYAD), x);
+}
+
+Storage take(Storage i, Storage x) // a#b
+{
+  return Noun::dispatchDyad(i, Word::make(Dyads::take, NounType::BUILTIN_DYAD), x);
+}
+
+Storage times(Storage i, Storage x) // a*b
+{
+  return Noun::dispatchDyad(i, Word::make(Dyads::times, NounType::BUILTIN_DYAD), x);
+}
+
+// Monadic Adverbs
+Storage converge(Storage i, Storage f) // f:~a
+{
+  return Noun::dispatchMonadicAdverb(i, Word::make(MonadicAdverbs::converge, NounType::MONADIC_ADVERB), f);
+}
+
+Storage each(Storage i, Storage f) // f'a
+{
+  return Noun::dispatchMonadicAdverb(i, Word::make(MonadicAdverbs::each, NounType::MONADIC_ADVERB), f);
+}
+
+Storage eachPair(Storage i, Storage f) // f:'a
+{
+  return Noun::dispatchMonadicAdverb(i, Word::make(MonadicAdverbs::eachPair, NounType::MONADIC_ADVERB), f);
+}
+
+Storage over(Storage i, Storage f) // f/a
+{
+  return Noun::dispatchMonadicAdverb(i, Word::make(MonadicAdverbs::over, NounType::MONADIC_ADVERB), f);
+}
+
+Storage scanConverging(Storage i, Storage f) // f:~a
+{
+  return Noun::dispatchMonadicAdverb(i, Word::make(MonadicAdverbs::scanConverging, NounType::MONADIC_ADVERB), f);
+}
+
+Storage scanOver(Storage i, Storage f) // f\a
+{
+  return Noun::dispatchMonadicAdverb(i, Word::make(MonadicAdverbs::scanOver, NounType::MONADIC_ADVERB), f);
+}
+
+// Dyadic Adverbs
+Storage each2(Storage i, Storage f, Storage x) // a f'b
+{
+  return Noun::dispatchDyadicAdverb(i, Word::make(DyadicAdverbs::each2, NounType::MONADIC_ADVERB), f, x);
+}
+
+Storage eachLeft(Storage i, Storage f, Storage x) // a f'b
+{
+  return Noun::dispatchDyadicAdverb(i, Word::make(DyadicAdverbs::eachLeft, NounType::MONADIC_ADVERB), f, x);
+}
+
+Storage eachRight(Storage i, Storage f, Storage x) // a f'b
+{
+  return Noun::dispatchDyadicAdverb(i, Word::make(DyadicAdverbs::eachRight, NounType::MONADIC_ADVERB), f, x);
+}
+
+Storage overNeutral(Storage i, Storage f, Storage x) // a f'b
+{
+  return Noun::dispatchDyadicAdverb(i, Word::make(DyadicAdverbs::overNeutral, NounType::MONADIC_ADVERB), f, x);
+}
+
+Storage iterate(Storage i, Storage f, Storage x) // a f:*b
+{
+  return Noun::dispatchDyadicAdverb(i, Word::make(DyadicAdverbs::iterate, NounType::MONADIC_ADVERB), f, x);
+}
+
+Storage scanIterating(Storage i, Storage f, Storage x) // a f\*b
+{
+  return Noun::dispatchDyadicAdverb(i, Word::make(DyadicAdverbs::scanIterating, NounType::MONADIC_ADVERB), f, x);
+}
+
+Storage scanOverNeutral(Storage i, Storage f, Storage x) // a f\b 
+{
+  return Noun::dispatchDyadicAdverb(i, Word::make(DyadicAdverbs::scanOverNeutral, NounType::MONADIC_ADVERB), f, x);
+}
+
+Storage whileTrue(Storage i, Storage f, Storage x) // a f\b 
+{
+  return Noun::dispatchDyadicAdverb(i, Word::make(DyadicAdverbs::whileOne, NounType::MONADIC_ADVERB), f, x);
+}
+
+Storage scanWhileTrue(Storage i, Storage f, Storage x) // a f\b 
+{
+  return Noun::dispatchDyadicAdverb(i, Word::make(DyadicAdverbs::scanWhileOne, NounType::MONADIC_ADVERB), f, x);
+}
+
 std::map<Specialization3, Monad> Noun::monads;
 std::map<Specialization5, Dyad> Noun::dyads;
 std::map<Specialization5, Triad> Noun::triads;
@@ -275,19 +387,23 @@ Storage Noun::dispatchTriad(Storage i, Storage f, Storage x, Storage y) {
   return verb(i, x, y);
 }
 
-Storage Noun::dispatchMonadicAdverb(Storage i, Storage f, Storage g) {
-  if (i.o == NounType::ERROR) {
+Storage Noun::dispatchMonadicAdverb(Storage i, Storage f, Storage g)
+{
+  if (i.o == NounType::ERROR)
+  {
     return i;
   }
 
-  if (f.t != StorageType::WORD) {
+  if (f.t != StorageType::WORD)
+  {
     return Word::make(BAD_OPERATION, NounType::ERROR);
   }
 
   int fi = std::get<int>(f.i);
 
   Specialization3 specialization = Specialization3(i.t, i.o, fi);
-  if (monadicAdverbs.find(specialization) == monadicAdverbs.end()) {
+  if (monadicAdverbs.find(specialization) == monadicAdverbs.end())
+  {
     return Word::make(UNSUPPORTED_OBJECT, NounType::ERROR);
   }
 
@@ -295,7 +411,8 @@ Storage Noun::dispatchMonadicAdverb(Storage i, Storage f, Storage g) {
   return adverb(i, g);
 }
 
-Storage Noun::dispatchDyadicAdverb(Storage i, Storage f, Storage g, Storage x) {
+Storage Noun::dispatchDyadicAdverb(Storage i, Storage f, Storage g, Storage x)
+{
   if (i.o == NounType::ERROR) {
     return i;
   }
@@ -365,13 +482,8 @@ Storage Noun::false2(Storage i, Storage x) {
   return Word::make(0, NounType::INTEGER);
 }
 
-Storage Noun::identity(Storage i)
+Storage Noun::identity1(Storage i)
 {
-  if(std::holds_alternative<int>(i.i))
-  {
-    int integer = std::get<int>(i.i);
-  }
-
   return i;
 }
 
@@ -479,6 +591,184 @@ Storage Noun::mix(Storage i)
   }
 }
 
+Storage Noun::simplify(Storage i)
+{
+  if(std::holds_alternative<ints>(i.i))
+  {
+    return i;
+  }
+  else if(std::holds_alternative<floats>(i.i))
+  {
+    return i;
+  }
+  else if(std::holds_alternative<mixed>(i.i))
+  {
+    mixed iis = std::get<mixed>(i.i);
+
+    if(iis.empty())
+    {
+      return WordArray::nil();
+    }
+
+    int all_integers = 1;
+    int all_reals = 1;
+    int all_characters = 1;
+    for(Storage y : iis)
+    {
+      if((y.t == StorageType::WORD) && (y.o == NounType::INTEGER))
+      {
+        all_reals = 0;
+        all_characters = 0;
+
+        if(!all_integers)
+        {
+          break;
+        }
+      }
+      else if((y.t == StorageType::FLOAT) && (y.o == NounType::REAL))
+      {
+        all_integers = 0;
+        all_characters = 0;
+
+        if(!all_reals)
+        {
+          break;
+        }
+      }
+      else if((y.t == StorageType::WORD) && (y.o == NounType::CHARACTER))
+      {
+        all_integers = 0;
+        all_reals = 0;
+
+        if(!all_characters)
+        {
+          break;
+        }
+      }
+      else
+      {
+        all_reals = 0;
+        all_integers = 0;
+        all_characters = 0;
+        break;
+      }
+    }
+
+    if(all_integers)
+    {
+      ints results = ints();
+      for(Storage y : iis)
+      {
+        int result = std::get<int>(y.i);
+
+        results.push_back(result);
+      }
+
+      return WordArray::make(results);
+    }    
+    else if(all_reals)
+    {
+      floats results = floats();
+      for(Storage y : iis)
+      {
+        float result = std::get<float>(y.i);
+
+        results.push_back(result);
+      }
+
+      return FloatArray::make(results);
+    }
+    else if(all_characters)
+    {
+      ints results = ints();
+      for(Storage y : iis)
+      {
+        int result = std::get<int>(y.i);
+
+        results.push_back(result);
+      }
+
+      return WordArray::make(results, NounType::STRING);
+    }    
+    else
+    {
+      return i;
+    }
+  }
+
+  return Word::make(UNSUPPORTED_OBJECT, NounType::ERROR);
+}
+
+int getInteger(Storage i)
+{
+  if(std::holds_alternative<int>(i.i))
+  {
+    int ii = std::get<int>(i.i);
+    return ii;
+  }
+
+  return 0;
+}
+
+float getReal(Storage i)
+{
+  if(std::holds_alternative<float>(i.i))
+  {
+    float ii = std::get<float>(i.i);
+    return ii;
+  }
+
+  return 0.0;
+}
+
+ints getIntegers(Storage i)
+{
+  if(std::holds_alternative<ints>(i.i))
+  {
+    ints integers = std::get<ints>(i.i);
+    return integers;
+  }
+
+  return ints();
+}
+
+floats getReals(Storage i)
+{
+  if(std::holds_alternative<floats>(i.i))
+  {
+    floats fs = std::get<floats>(i.i);
+    return fs;
+  }
+
+  return floats();
+}
+
+mixed getMixed(Storage i)
+{
+  if(std::holds_alternative<mixed>(i.i))
+  {
+    mixed ms = std::get<mixed>(i.i);
+    return ms;
+  }
+
+  return mixed();
+}
+
+int isNil(Storage i)
+{
+  return getInteger(match(i, WordArray::nil()));
+}
+
+int isAtom(Storage i)
+{
+  return getInteger(atom(i));
+}
+
+int getSize(Storage i)
+{
+  return getInteger(size(i));
+}
+
 // Extension Dyads - Implementations
 Storage Noun::join_scalar(Storage i, Storage x)
 {
@@ -518,6 +808,326 @@ Storage Noun::join_enclose_mix(Storage i, Storage x)
 Storage Noun::join_mix_enclose(Storage i, Storage x)
 {
   return join(mix(i), enclose(x));
+}
+
+Storage Noun::identity2(Storage i, Storage x)
+{
+  return i;
+}
+
+Storage Noun::enclose2(Storage i, Storage x)
+{
+  return enclose(i);
+}
+
+// Monadic Adverbs
+Storage Noun::converge_impl(Storage i, Storage f)
+{
+  Storage previous = i;
+  Storage equivalence = Noun::false0();
+
+  for(int iterations = 0; iterations < Noun::maximumConvergeIterations; iterations++)
+  {
+    Storage next = dispatchMonad(previous, f);
+    if(next.o == NounType::ERROR)
+    {
+      return next;
+    }
+
+    Storage equivalence = match(next, previous);
+    previous = next;
+
+    if(equivalence.truth())
+    {
+      return next;
+    }
+  }
+
+  return Word::make(MAXIMUM_ITERATIONS, NounType::ERROR);
+}
+
+Storage Noun::scanConverging_impl(Storage i, Storage f)
+{
+  Storage previous = i;
+  Storage equivalence = Noun::false0();
+
+  mixed results = mixed({i});
+
+  for(int iterations = 0; iterations < Noun::maximumConvergeIterations; iterations++)
+  {
+    Storage next = dispatchMonad(previous, f);
+    if(next.o == NounType::ERROR)
+    {
+      return next;
+    }
+
+    Storage equivalence = match(next, previous);
+    previous = next;
+
+    results.push_back(next);
+
+    if(equivalence.truth())
+    {
+      return Noun::simplify(MixedArray::make(results));
+    }
+  }
+
+  return Word::make(MAXIMUM_ITERATIONS, NounType::ERROR);
+}
+
+// Dyadic Adverbs
+Storage Noun::each2_impl(Storage i, Storage f, Storage x)
+{
+  if(isNil(i))
+  {
+    return i;
+  }
+
+  if(isNil(x))
+  {
+    return x;
+  }
+
+  if(isAtom(i) && isAtom(x))
+  {
+    return dispatchDyad(i, f, x);
+  }
+
+  int is = getSize(i);
+  int xs = getSize(x);
+
+  int max = min(is, xs);
+
+  mixed results = mixed();
+  for(int offset = 0; offset < max; offset++)
+  {
+    Storage y = index(i, Word::make(offset));
+    Storage z = index(x, Word::make(offset));
+    Storage result = Noun::dispatchDyad(y, f, z);
+
+    if(result.o == NounType::ERROR)
+    {
+      return result;
+    }
+
+    results.push_back(result);
+  }
+
+  return Noun::simplify(MixedArray::make(results));
+}
+
+Storage Noun::eachLeft_impl(Storage i, Storage f, Storage x)
+{
+  if(isNil(i))
+  {
+    return i;
+  }
+
+  if(isAtom(i))
+  {
+    return dispatchDyad(i, f, x);
+  }
+
+  int is = getSize(i);
+
+  mixed results = mixed();
+  for(int offset = 0; offset < is; offset++)
+  {
+    Storage y = index(i, Word::make(offset));
+
+    Storage result = Noun::dispatchDyad(y, f, x);
+
+    if(result.o == NounType::ERROR)
+    {
+      return result;
+    }
+
+    results.push_back(result);
+  }
+
+  return Noun::simplify(MixedArray::make(results));
+}
+
+Storage Noun::eachRight_impl(Storage i, Storage f, Storage x)
+{
+  if(isNil(i))
+  {
+    return i;
+  }
+
+  if(isAtom(i))
+  {
+    return dispatchDyad(i, f, x);
+  }
+
+  int is = getSize(i);
+
+  mixed results = mixed();
+  for(int offset = 0; offset < is; offset++)
+  {
+    Storage y = index(i, Word::make(offset));
+
+    Storage result = Noun::dispatchDyad(x, f, y);
+
+    if(result.o == NounType::ERROR)
+    {
+      return result;
+    }
+
+    results.push_back(result);
+  }
+
+  return Noun::simplify(MixedArray::make(results));
+}
+
+Storage Noun::overNeutral_impl(Storage i, Storage f, Storage x)
+{
+  if(isNil(i))
+  {
+    return x;
+  }
+
+  if(isAtom(i) && isAtom(x))
+  {
+    return dispatchDyad(i, f, x);
+  }
+
+  return over(prepend(x, i), f);
+}
+
+Storage Noun::iterate_integer(Storage i, Storage f, Storage x)
+{
+  if(x.o == NounType::INTEGER)
+  {
+    Storage current = i;
+    Storage countdown = x;
+    while(more(countdown, Word::make(0)).truth())
+    {
+      current = dispatchMonad(current, f);
+      if(current.o == NounType::ERROR)
+      {
+        return current;
+      }
+
+      countdown = minus(countdown, Word::make(1));
+      if(countdown.o == NounType::ERROR)
+      {
+        return countdown;
+      }
+    }
+
+    return current;
+  }
+
+  return Word::make(UNSUPPORTED_OBJECT, NounType::ERROR);
+}
+
+Storage Noun::scanIterating_integer(Storage i, Storage f, Storage x)
+{
+  if(x.o == NounType::INTEGER)
+  {
+    mixed results = mixed({i});
+
+    Storage current = i;
+    Storage countdown = x;
+    while(more(countdown, Word::make(0)).truth())
+    {
+      current = dispatchMonad(current, f);
+      if(current.o == NounType::ERROR)
+      {
+        return current;
+      }
+
+      countdown = minus(countdown, Word::make(1));
+      if(countdown.o == NounType::ERROR)
+      {
+        return countdown;
+      }
+
+      results.push_back(current);
+    }
+
+    return Noun::simplify(MixedArray::make(results));
+  }
+
+  return Word::make(UNSUPPORTED_OBJECT, NounType::ERROR);
+}
+
+Storage Noun::scanOverNeutral_impl(Storage i, Storage f, Storage x)
+{
+  if(isNil(i))
+  {
+    return x;
+  }
+
+  if(isAtom(i) && isAtom(x))
+  {
+    return dispatchDyad(i, f, x);
+  }
+
+  return scanOver(prepend(x, i), f);
+}
+
+Storage Noun::scanWhileTrue_impl(Storage i, Storage f, Storage g)
+{
+  mixed results = mixed();
+
+  Storage current = i;
+  Storage t = Noun::dispatchMonad(current, f);
+
+  if(t.o == NounType::ERROR)
+  {
+    return t;
+  }
+
+  while(t.truth())
+  {
+    results.push_back(current);
+
+    current = dispatchMonad(current, g);
+    if(current.o == NounType::ERROR)
+    {
+      return t;
+    }
+
+
+    t = dispatchMonad(current, f);
+    if(t.o == NounType::ERROR)
+    {
+      return t;
+    }
+  }
+
+  return Noun::simplify(MixedArray::make(results));
+}
+
+Storage Noun::whileTrue_impl(Storage i, Storage f, Storage g)
+{
+  Storage current = i;
+  Storage t = Noun::dispatchMonad(current, f);
+
+  if(t.o == NounType::ERROR)
+  {
+    return t;
+  }
+
+  while(t.truth())
+  {
+    current = dispatchMonad(current, g);
+    if(current.o == NounType::ERROR)
+    {
+      return t;
+    }
+
+
+    t = dispatchMonad(current, f);
+    if(t.o == NounType::ERROR)
+    {
+      return t;
+    }
+  }
+
+  return current;
 }
 
 // Serialization
@@ -789,17 +1399,17 @@ void Integer::initialize() {
   Noun::registerMonad(StorageType::WORD, NounType::INTEGER, Monads::inot, Integer::not_impl);
   Noun::registerMonad(StorageType::WORD, NounType::INTEGER, Monads::enclose, Integer::enclose_impl);
   Noun::registerMonad(StorageType::WORD, NounType::INTEGER, Monads::enumerate, Integer::enumerate_impl);
-  Noun::registerMonad(StorageType::WORD, NounType::INTEGER, Monads::first, Noun::identity);
-  Noun::registerMonad(StorageType::WORD, NounType::INTEGER, Monads::floor, Noun::identity);
+  Noun::registerMonad(StorageType::WORD, NounType::INTEGER, Monads::first, Noun::identity1);
+  Noun::registerMonad(StorageType::WORD, NounType::INTEGER, Monads::floor, Noun::identity1);
   Noun::registerMonad(StorageType::WORD, NounType::INTEGER, Monads::negate, Integer::negate_impl);
   Noun::registerMonad(StorageType::WORD, NounType::INTEGER, Monads::reciprocal, Integer::reciprocal_impl);
-  Noun::registerMonad(StorageType::WORD, NounType::INTEGER, Monads::reverse, Noun::identity);
+  Noun::registerMonad(StorageType::WORD, NounType::INTEGER, Monads::reverse, Noun::identity1);
   Noun::registerMonad(StorageType::WORD, NounType::INTEGER, Monads::shape, Noun::shape_scalar);
   Noun::registerMonad(StorageType::WORD, NounType::INTEGER, Monads::size, Integer::size_impl);
 
   // Extension Monads
-  Noun::registerMonad(StorageType::WORD, NounType::INTEGER, Monads::evaluate, Storage::identity);
-  Noun::registerMonad(StorageType::WORD_ARRAY, NounType::INTEGER, Monads::evaluate, Storage::identity);
+  Noun::registerMonad(StorageType::WORD, NounType::INTEGER, Monads::evaluate, Noun::identity1);
+  Noun::registerMonad(StorageType::WORD_ARRAY, NounType::INTEGER, Monads::evaluate, Noun::identity1);
 
   // Dyads
   Noun::registerDyad(StorageType::WORD, NounType::INTEGER, Dyads::cut, StorageType::WORD_ARRAY, NounType::LIST, Integer::cut_integers);
@@ -873,6 +1483,55 @@ void Integer::initialize() {
   Noun::registerDyad(StorageType::WORD, NounType::INTEGER, Dyads::power, StorageType::WORD_ARRAY, NounType::LIST, Integer::power_list);
   Noun::registerDyad(StorageType::WORD, NounType::INTEGER, Dyads::power, StorageType::FLOAT_ARRAY, NounType::LIST, Integer::power_list);
   Noun::registerDyad(StorageType::WORD, NounType::INTEGER, Dyads::power, StorageType::MIXED_ARRAY, NounType::LIST, Integer::power_list);
+
+  Noun::registerDyad(StorageType::WORD, NounType::INTEGER, Dyads::remainder, StorageType::WORD, NounType::INTEGER, Integer::remainder_integer);
+  Noun::registerDyad(StorageType::WORD, NounType::INTEGER, Dyads::remainder, StorageType::WORD_ARRAY, NounType::LIST, Integer::remainder_integers);
+  Noun::registerDyad(StorageType::WORD, NounType::INTEGER, Dyads::remainder, StorageType::MIXED_ARRAY, NounType::LIST, Integer::remainder_mixed);
+
+  Noun::registerDyad(StorageType::WORD, NounType::INTEGER, Dyads::reshape, StorageType::WORD, NounType::INTEGER, Integer::reshape_integer);
+  Noun::registerDyad(StorageType::WORD, NounType::INTEGER, Dyads::reshape, StorageType::WORD_ARRAY, NounType::LIST, Integer::reshape_integers);
+  Noun::registerDyad(StorageType::WORD, NounType::INTEGER, Dyads::reshape, StorageType::MIXED_ARRAY, NounType::LIST, Integer::reshape_mixed);
+
+  Noun::registerDyad(StorageType::WORD, NounType::INTEGER, Dyads::times, StorageType::WORD, NounType::INTEGER, Integer::times_integer);
+  Noun::registerDyad(StorageType::WORD, NounType::INTEGER, Dyads::times, StorageType::FLOAT, NounType::REAL, Integer::times_real);
+  Noun::registerDyad(StorageType::WORD, NounType::INTEGER, Dyads::times, StorageType::WORD_ARRAY, NounType::LIST, Integer::times_list);
+  Noun::registerDyad(StorageType::WORD, NounType::INTEGER, Dyads::times, StorageType::FLOAT_ARRAY, NounType::LIST, Integer::times_list);
+  Noun::registerDyad(StorageType::WORD, NounType::INTEGER, Dyads::times, StorageType::MIXED_ARRAY, NounType::LIST, Integer::times_list);
+
+  // Monadic Adverbs
+  Noun::registerMonadicAdverb(StorageType::WORD, NounType::INTEGER, MonadicAdverbs::converge, Noun::converge_impl);
+
+  Noun::registerMonadicAdverb(StorageType::WORD, NounType::INTEGER, MonadicAdverbs::each, Noun::dispatchMonad);
+  Noun::registerMonadicAdverb(StorageType::WORD, NounType::INTEGER, MonadicAdverbs::eachPair, Noun::identity2);
+  Noun::registerMonadicAdverb(StorageType::WORD, NounType::INTEGER, MonadicAdverbs::over, Noun::identity2);
+  Noun::registerMonadicAdverb(StorageType::WORD, NounType::INTEGER, MonadicAdverbs::scanConverging, Noun::scanConverging_impl);
+  Noun::registerMonadicAdverb(StorageType::WORD, NounType::INTEGER, MonadicAdverbs::scanOver, Noun::enclose2);
+
+  // Dyadic Adverbs
+  Noun::registerDyadicAdverb(StorageType::WORD, NounType::INTEGER, DyadicAdverbs::each2, StorageType::WORD, NounType::INTEGER, Noun::dispatchDyad);
+  Noun::registerDyadicAdverb(StorageType::WORD, NounType::INTEGER, DyadicAdverbs::each2, StorageType::FLOAT, NounType::REAL, Noun::dispatchDyad);
+  Noun::registerDyadicAdverb(StorageType::WORD, NounType::INTEGER, DyadicAdverbs::each2, StorageType::WORD_ARRAY, NounType::LIST, Noun::dispatchDyad);
+  Noun::registerDyadicAdverb(StorageType::WORD, NounType::INTEGER, DyadicAdverbs::each2, StorageType::FLOAT_ARRAY, NounType::LIST, Noun::dispatchDyad);
+  Noun::registerDyadicAdverb(StorageType::WORD, NounType::INTEGER, DyadicAdverbs::each2, StorageType::MIXED_ARRAY, NounType::LIST, Noun::dispatchDyad);
+  Noun::registerDyadicAdverb(StorageType::WORD, NounType::INTEGER, DyadicAdverbs::each2, StorageType::WORD, NounType::CHARACTER, Noun::dispatchDyad);
+  Noun::registerDyadicAdverb(StorageType::WORD, NounType::INTEGER, DyadicAdverbs::each2, StorageType::WORD_ARRAY, NounType::STRING, Noun::dispatchDyad);
+
+  Noun::registerDyadicAdverb(StorageType::WORD, NounType::INTEGER, DyadicAdverbs::iterate, StorageType::WORD, NounType::INTEGER, Noun::iterate_integer);
+}
+
+Storage Integer::make(int i)
+{
+  return Word::make(i, NounType::INTEGER);
+}
+
+Storage Integer::zero()
+{
+  return Integer::make(0);
+}
+
+Storage Integer::one()
+{
+  return Integer::make(1);
 }
 
 // Monads
@@ -2146,6 +2805,308 @@ Storage Integer::power_list(Storage i, Storage x)
   return Word::make(UNSUPPORTED_OBJECT, NounType::ERROR);
 }
 
+Storage Integer::remainder_integer(Storage i, Storage x)
+{
+  if(std::holds_alternative<int>(i.i))
+  {
+    int ii = std::get<int>(i.i);
+
+    if(std::holds_alternative<int>(x.i))
+    {
+      int xi = std::get<int>(x.i);
+
+      return Word::make(ii % xi);
+    }
+  }
+
+  return Word::make(UNSUPPORTED_OBJECT, NounType::ERROR);
+}
+
+Storage Integer::remainder_integers(Storage i, Storage x)
+{
+  if(std::holds_alternative<int>(i.i))
+  {
+    int ii = std::get<int>(i.i);
+
+    if(std::holds_alternative<ints>(x.i))
+    {
+      ints xis = std::get<ints>(x.i);
+
+      ints results = ints();
+
+      for(int y : xis)
+      {
+        results.push_back(ii % y);
+      }
+
+      return WordArray::make(results, NounType::LIST);
+    }
+  }
+
+  return Word::make(UNSUPPORTED_OBJECT, NounType::ERROR);
+}
+
+Storage Integer::remainder_mixed(Storage i, Storage x)
+{
+  if(std::holds_alternative<int>(i.i))
+  {
+    int ii = std::get<int>(i.i);
+
+    if(std::holds_alternative<mixed>(x.i))
+    {
+      Storage si = Word::make(ii);
+      mixed xis = std::get<mixed>(x.i);
+
+      mixed results = mixed();
+
+      for(Storage y : xis)
+      {
+        Storage result = remainder(si, y);
+        if(result.t == NounType::ERROR)
+        {
+          return result;
+        }
+
+        results.push_back(result);
+      }
+
+      return MixedArray::make(results);
+    }
+  }
+
+  return Word::make(UNSUPPORTED_OBJECT, NounType::ERROR);
+}
+
+Storage Integer::reshape_integer(Storage i, Storage x)
+{
+  if(std::holds_alternative<int>(i.i))
+  {
+    int ii = std::get<int>(i.i);
+
+    if(std::holds_alternative<int>(x.i))
+    {
+      int xi = std::get<int>(x.i);
+
+      if(xi == 0)
+      {
+        return i;
+      }
+
+      if(xi == -1)
+      {
+        xi = getInteger(integerDivide(size(i), Word::make(2)));
+      }
+
+      if(xi > 0)
+      {
+        ints results = ints();
+
+        for(int index = 0; index < xi; index++)
+        {
+          results.push_back(ii);
+        }
+
+        return WordArray::make(results);
+      }
+    }
+  }
+
+  return Word::make(UNSUPPORTED_OBJECT, NounType::ERROR);
+}
+
+Storage Integer::reshape_integers(Storage i, Storage x)
+{
+  if(std::holds_alternative<int>(i.i))
+  {
+    int ii = std::get<int>(i.i);
+
+    int halfSize = getInteger(integerDivide(size(i), Word::make(2)));
+
+    if(std::holds_alternative<ints>(x.i))
+    {
+      ints xis = std::get<ints>(x.i);
+
+      if(xis.empty())
+      {
+        return Word::make(INVALID_ARGUMENT, NounType::ERROR);
+      }
+
+      ints lengths = ints();
+      for(int xi : xis)
+      {
+        if(xi == 0 || xi < -1)
+        {
+          return Word::make(INVALID_ARGUMENT, NounType::ERROR);
+        }
+
+        if(xi == -1)
+        {
+          lengths.push_back(halfSize);
+        }
+
+        // else xi > 0
+        lengths.push_back(xi);
+      }
+
+      if(lengths.size() == 1)
+      {
+        int xi = lengths[0];
+        Storage sx = Word::make(xi);
+
+        return reshape(i, sx);
+      }
+      else // xi.size() > 1
+      {
+        Storage total = over(WordArray::make(lengths), Word::make(Dyads::times, NounType::BUILTIN_DYAD));
+        ints rest(lengths.begin(), lengths.end() - 1);
+
+        Storage working = reshape(i, total);
+
+        for(int index = rest.size() - 1; index >= 0; index--)
+        {
+          int y = rest[index];
+          working = split(working, Word::make(y));
+        }
+
+        return working;
+      }
+    }
+  }
+
+  return Word::make(UNSUPPORTED_OBJECT, NounType::ERROR);
+}
+
+Storage Integer::reshape_mixed(Storage i, Storage x)
+{
+  if(std::holds_alternative<int>(i.i))
+  {
+    int ii = std::get<int>(i.i);
+
+    if(std::holds_alternative<mixed>(x.i))
+    {
+      Storage si = Word::make(ii);
+      mixed xis = std::get<mixed>(x.i);
+
+      mixed results = mixed();
+
+      if(xis.size() > 0)
+      {
+        if(xis.size() == 1)
+        {
+          Storage xi = xis[0];
+
+          return reshape(i, xi);
+        }
+        else // xi.size() > 1
+        {
+          Storage first = xis.front();
+          mixed rest(xis.begin() + 1, xis.end());
+
+          Storage result = reshape(i, MixedArray::make(rest));
+          return reshape(first, result);
+        }
+      }
+    }
+  }
+
+  return Word::make(UNSUPPORTED_OBJECT, NounType::ERROR);
+}
+
+Storage Integer::times_integer(Storage i, Storage x)
+{
+  if(std::holds_alternative<int>(i.i))
+  {
+    int ii = std::get<int>(i.i);
+
+    if(std::holds_alternative<int>(x.i))
+    {
+      int xi = std::get<int>(x.i);
+
+      int result = ii * xi;
+      return Word::make(result);
+    }
+  }
+
+  return Word::make(UNSUPPORTED_OBJECT, NounType::ERROR);
+}
+
+Storage Integer::times_real(Storage i, Storage x)
+{
+  if(std::holds_alternative<int>(i.i))
+  {
+    int ii = std::get<int>(i.i);
+    float fi = static_cast<float>(ii);
+
+    if(std::holds_alternative<float>(x.i))
+    {
+      float fx = std::get<float>(x.i);
+
+      float result = fi * fx;
+      return Float::make(result);
+    }
+  }
+
+  return Noun::false0();
+}
+
+Storage Integer::times_list(Storage i, Storage x)
+{
+  if(std::holds_alternative<int>(i.i))
+  {
+    int ii = std::get<int>(i.i);
+
+    if(std::holds_alternative<ints>(x.i))
+    {
+      ints xis = std::get<ints>(x.i);
+
+      ints results = ints();
+
+      for(int y : xis)
+      {
+        results.push_back(ii * y);
+      }
+
+      return WordArray::make(results, NounType::LIST);
+    }
+    else if(std::holds_alternative<floats>(x.i))
+    {
+      float fi = static_cast<float>(ii);
+      floats xis = std::get<floats>(x.i);
+
+      floats results = floats();
+
+      for(float fy : xis)
+      {
+        results.push_back(fi * fy);
+      }
+
+      return FloatArray::make(results);
+    }
+    else if(std::holds_alternative<mixed>(x.i))
+    {
+      Storage si = Word::make(ii);
+      mixed xis = std::get<mixed>(x.i);
+
+      mixed results = mixed();
+
+      for(Storage y : xis)
+      {
+        Storage result = times(si, y);
+        if(result.t == NounType::ERROR)
+        {
+          return result;
+        }
+
+        results.push_back(result);
+      }
+
+      return MixedArray::make(results);
+    }
+  }
+
+  return Word::make(UNSUPPORTED_OBJECT, NounType::ERROR);
+}
+
 // Serialization
 maybe<Storage> Integer::from_bytes(bytes bs, int t) {
   switch (t) {
@@ -2226,19 +3187,19 @@ void Real::initialize() {
   // Monads
   Noun::registerMonad(StorageType::FLOAT, NounType::REAL, Monads::atom, Noun::true1);
   Noun::registerMonad(StorageType::FLOAT, NounType::REAL, Monads::enclose, Real::enclose_impl);
-  Noun::registerMonad(StorageType::FLOAT, NounType::REAL, Monads::first, Noun::identity);
+  Noun::registerMonad(StorageType::FLOAT, NounType::REAL, Monads::first, Noun::identity1);
   Noun::registerMonad(StorageType::FLOAT, NounType::REAL, Monads::floor, Real::floor_impl);
   // FIXME - format
   // FIXME - group
   Noun::registerMonad(StorageType::FLOAT, NounType::REAL, Monads::negate, Real::negate_impl);
   Noun::registerMonad(StorageType::FLOAT, NounType::REAL, Monads::inot, Real::not_impl);
   Noun::registerMonad(StorageType::FLOAT, NounType::REAL, Monads::reciprocal, Real::reciprocal_impl);
-  Noun::registerMonad(StorageType::FLOAT, NounType::REAL, Monads::reverse, Noun::identity);
+  Noun::registerMonad(StorageType::FLOAT, NounType::REAL, Monads::reverse, Noun::identity1);
   Noun::registerMonad(StorageType::FLOAT, NounType::REAL, Monads::shape, Noun::shape_scalar);
   Noun::registerMonad(StorageType::FLOAT, NounType::REAL, Monads::size, Real::size_impl);
 
   // Extension Monads
-  Noun::registerMonad(StorageType::FLOAT, NounType::REAL, Monads::evaluate, Storage::identity);
+  Noun::registerMonad(StorageType::FLOAT, NounType::REAL, Monads::evaluate, Noun::identity1);
 
   // Dyads
   Noun::registerDyad(StorageType::FLOAT, NounType::REAL, Dyads::divide, StorageType::WORD, NounType::INTEGER, Real::divide_integer);
@@ -2304,6 +3265,33 @@ void Real::initialize() {
   Noun::registerDyad(StorageType::FLOAT, NounType::REAL, Dyads::power, StorageType::WORD_ARRAY, NounType::LIST, Real::power_list);
   Noun::registerDyad(StorageType::FLOAT, NounType::REAL, Dyads::power, StorageType::FLOAT_ARRAY, NounType::LIST, Real::power_list);
   Noun::registerDyad(StorageType::FLOAT, NounType::REAL, Dyads::power, StorageType::MIXED_ARRAY, NounType::LIST, Real::power_list);
+
+  Noun::registerDyad(StorageType::FLOAT, NounType::REAL, Dyads::times, StorageType::WORD, NounType::INTEGER, Real::times_integer);
+  Noun::registerDyad(StorageType::FLOAT, NounType::REAL, Dyads::times, StorageType::FLOAT, NounType::REAL, Real::times_real);
+  Noun::registerDyad(StorageType::FLOAT, NounType::REAL, Dyads::times, StorageType::WORD_ARRAY, NounType::LIST, Real::times_list);
+  Noun::registerDyad(StorageType::FLOAT, NounType::REAL, Dyads::times, StorageType::FLOAT_ARRAY, NounType::LIST, Real::times_list);
+  Noun::registerDyad(StorageType::FLOAT, NounType::REAL, Dyads::times, StorageType::MIXED_ARRAY, NounType::LIST, Real::times_list);
+
+  // Monadic Adverbs
+  Noun::registerMonadicAdverb(StorageType::FLOAT, NounType::REAL, MonadicAdverbs::converge, Noun::converge_impl);
+
+  Noun::registerMonadicAdverb(StorageType::FLOAT, NounType::REAL, MonadicAdverbs::each, Noun::dispatchMonad);
+  Noun::registerMonadicAdverb(StorageType::FLOAT, NounType::REAL, MonadicAdverbs::eachPair, Noun::identity2);
+  Noun::registerMonadicAdverb(StorageType::FLOAT, NounType::REAL, MonadicAdverbs::over, Noun::identity2);
+  Noun::registerMonadicAdverb(StorageType::FLOAT, NounType::REAL, MonadicAdverbs::scanOver, Noun::enclose2);
+
+  Noun::registerMonadicAdverb(StorageType::FLOAT, NounType::REAL, MonadicAdverbs::scanConverging, Noun::scanConverging_impl);
+
+  // Dyadic Adverbs
+  Noun::registerDyadicAdverb(StorageType::FLOAT, NounType::REAL, DyadicAdverbs::each2, StorageType::WORD, NounType::INTEGER, Noun::each2_impl);
+  Noun::registerDyadicAdverb(StorageType::FLOAT, NounType::REAL, DyadicAdverbs::each2, StorageType::FLOAT, NounType::REAL, Noun::each2_impl);
+  Noun::registerDyadicAdverb(StorageType::FLOAT, NounType::REAL, DyadicAdverbs::each2, StorageType::WORD_ARRAY, NounType::LIST, Noun::each2_impl);
+  Noun::registerDyadicAdverb(StorageType::FLOAT, NounType::REAL, DyadicAdverbs::each2, StorageType::FLOAT_ARRAY, NounType::LIST, Noun::each2_impl);
+  Noun::registerDyadicAdverb(StorageType::FLOAT, NounType::REAL, DyadicAdverbs::each2, StorageType::MIXED_ARRAY, NounType::LIST, Noun::each2_impl);
+  Noun::registerDyadicAdverb(StorageType::FLOAT, NounType::REAL, DyadicAdverbs::each2, StorageType::WORD, NounType::CHARACTER, Noun::each2_impl);
+  Noun::registerDyadicAdverb(StorageType::FLOAT, NounType::REAL, DyadicAdverbs::each2, StorageType::WORD_ARRAY, NounType::STRING, Noun::each2_impl);
+
+  Noun::registerDyadicAdverb(StorageType::FLOAT, NounType::REAL, DyadicAdverbs::iterate, StorageType::WORD, NounType::INTEGER, Noun::iterate_integer);
 }
 
 Storage Real::enclose_impl(Storage i)
@@ -3390,6 +4378,100 @@ Storage Real::power_list(Storage i, Storage x)
   return Word::make(UNSUPPORTED_OBJECT, NounType::ERROR);
 }
 
+Storage Real::times_integer(Storage i, Storage x)
+{
+  if(std::holds_alternative<float>(i.i))
+  {
+    float fi = std::get<float>(i.i);
+
+    if(std::holds_alternative<int>(x.i))
+    {
+      int xi = std::get<int>(x.i);
+      float fx = static_cast<float>(xi);
+
+      return Float::make(fi * fx);
+    }
+  }
+
+  return Word::make(UNSUPPORTED_OBJECT, NounType::ERROR);
+}
+
+Storage Real::times_real(Storage i, Storage x)
+{
+  if(std::holds_alternative<float>(i.i))
+  {
+    int fi = std::get<float>(i.i);
+
+    if(std::holds_alternative<float>(x.i))
+    {
+      float fx = std::get<float>(x.i);
+
+      return Float::make(fi * fx);
+    }
+  }
+
+  return Noun::false1(i);
+}
+
+Storage Real::times_list(Storage i, Storage x)
+{
+  if(std::holds_alternative<float>(i.i))
+  {
+    float fi = std::get<float>(i.i);
+
+    if(std::holds_alternative<ints>(x.i))
+    {
+      ints xis = std::get<ints>(x.i);
+
+      floats results = floats();
+
+      for(int y : xis)
+      {
+        float fy = static_cast<float>(y);
+
+        results.push_back(fi * fy);
+      }
+
+      return FloatArray::make(results);
+    }
+    else if(std::holds_alternative<floats>(x.i))
+    {
+      floats xis = std::get<floats>(x.i);
+
+      floats results = floats();
+
+      for(float fy : xis)
+      {
+        results.push_back(fi * fy);
+      }
+
+      return FloatArray::make(results);
+    }
+    else if(std::holds_alternative<mixed>(x.i))
+    {
+      Storage si = Float::make(fi);
+      mixed xis = std::get<mixed>(x.i);
+
+      mixed results = mixed();
+
+      for(Storage y : xis)
+      {
+        Storage result = times(si, y);
+        if(result.t == NounType::ERROR)
+        {
+          return result;
+        }
+
+        results.push_back(result);
+      }
+
+      return MixedArray::make(results);
+    }
+  }
+
+  return Word::make(UNSUPPORTED_OBJECT, NounType::ERROR);
+}
+
 // Serialization
 maybe<Storage> Real::from_bytes(bytes bs, int t) {
   switch (t) {
@@ -3451,7 +4533,7 @@ void List::initialize() {
   Noun::registerMonad(StorageType::WORD_ARRAY, NounType::LIST, Monads::inot, List::not_impl);
   Noun::registerMonad(StorageType::WORD_ARRAY, NounType::LIST, Monads::enclose, Noun::enclose_impl);
   Noun::registerMonad(StorageType::WORD_ARRAY, NounType::LIST, Monads::first, List::first_impl);
-  Noun::registerMonad(StorageType::WORD_ARRAY, NounType::LIST, Monads::floor, Noun::identity);
+  Noun::registerMonad(StorageType::WORD_ARRAY, NounType::LIST, Monads::floor, Noun::identity1);
   // FIXME - format
   Noun::registerMonad(StorageType::WORD_ARRAY, NounType::LIST, Monads::gradeDown, List::gradeDown_impl);
   Noun::registerMonad(StorageType::WORD_ARRAY, NounType::LIST, Monads::gradeUp, List::gradeUp_impl);
@@ -3464,7 +4546,7 @@ void List::initialize() {
   Noun::registerMonad(StorageType::WORD_ARRAY, NounType::LIST, Monads::unique, List::unique_impl);
   
   // Extension Monads
-  Noun::registerMonad(StorageType::WORD_ARRAY, NounType::LIST, Monads::evaluate, Storage::identity);
+  Noun::registerMonad(StorageType::WORD_ARRAY, NounType::LIST, Monads::evaluate, Noun::identity1);
 
   // Dyads
   Noun::registerDyad(StorageType::WORD_ARRAY, NounType::LIST, Dyads::cut, StorageType::WORD, NounType::INTEGER, List::cut_integer);
@@ -3547,6 +4629,49 @@ void List::initialize() {
   Noun::registerDyad(StorageType::WORD_ARRAY, NounType::LIST, Dyads::power, StorageType::FLOAT_ARRAY, NounType::LIST, List::power_reals);
   Noun::registerDyad(StorageType::WORD_ARRAY, NounType::LIST, Dyads::power, StorageType::MIXED_ARRAY, NounType::LIST, List::power_mixed);  
 
+  Noun::registerDyad(StorageType::WORD_ARRAY, NounType::LIST, Dyads::remainder, StorageType::WORD, NounType::INTEGER, List::remainder_integer);
+  Noun::registerDyad(StorageType::WORD_ARRAY, NounType::LIST, Dyads::remainder, StorageType::WORD_ARRAY, NounType::LIST, List::remainder_integers);
+  Noun::registerDyad(StorageType::WORD_ARRAY, NounType::LIST, Dyads::remainder, StorageType::MIXED_ARRAY, NounType::LIST, List::remainder_mixed);  
+
+  Noun::registerDyad(StorageType::WORD_ARRAY, NounType::LIST, Dyads::reshape, StorageType::WORD, NounType::INTEGER, List::reshape_integer);
+  Noun::registerDyad(StorageType::WORD_ARRAY, NounType::LIST, Dyads::reshape, StorageType::WORD_ARRAY, NounType::LIST, List::reshape_integers);
+  Noun::registerDyad(StorageType::WORD_ARRAY, NounType::LIST, Dyads::reshape, StorageType::MIXED_ARRAY, NounType::LIST, List::reshape_mixed);  
+
+  Noun::registerDyad(StorageType::WORD_ARRAY, NounType::LIST, Dyads::rotate, StorageType::WORD, NounType::INTEGER, List::rotate_integer);
+
+  Noun::registerDyad(StorageType::WORD_ARRAY, NounType::LIST, Dyads::split, StorageType::WORD, NounType::INTEGER, List::split_integer);
+  Noun::registerDyad(StorageType::WORD_ARRAY, NounType::LIST, Dyads::split, StorageType::WORD_ARRAY, NounType::LIST, List::split_integers);
+
+  Noun::registerDyad(StorageType::WORD_ARRAY, NounType::LIST, Dyads::take, StorageType::WORD, NounType::INTEGER, List::take_integer);
+
+  Noun::registerDyad(StorageType::WORD_ARRAY, NounType::LIST, Dyads::times, StorageType::WORD, NounType::INTEGER, List::times_integer);
+  Noun::registerDyad(StorageType::WORD_ARRAY, NounType::LIST, Dyads::times, StorageType::FLOAT, NounType::REAL, List::times_real);
+  Noun::registerDyad(StorageType::WORD_ARRAY, NounType::LIST, Dyads::times, StorageType::WORD_ARRAY, NounType::LIST, List::times_integers);
+  Noun::registerDyad(StorageType::WORD_ARRAY, NounType::LIST, Dyads::times, StorageType::FLOAT_ARRAY, NounType::LIST, List::times_reals);
+  Noun::registerDyad(StorageType::WORD_ARRAY, NounType::LIST, Dyads::times, StorageType::MIXED_ARRAY, NounType::LIST, List::times_mixed);
+
+  // Monadic Adverbs
+  Noun::registerMonadicAdverb(StorageType::WORD_ARRAY, NounType::LIST, MonadicAdverbs::converge, Noun::converge_impl);  
+
+  Noun::registerMonadicAdverb(StorageType::WORD_ARRAY, NounType::LIST, MonadicAdverbs::each, List::each_integers);
+  Noun::registerMonadicAdverb(StorageType::WORD_ARRAY, NounType::LIST, MonadicAdverbs::eachPair, List::eachPair_integers);
+  Noun::registerMonadicAdverb(StorageType::WORD_ARRAY, NounType::LIST, MonadicAdverbs::over, List::over_integers);
+
+  Noun::registerMonadicAdverb(StorageType::WORD_ARRAY, NounType::LIST, MonadicAdverbs::scanConverging, Noun::scanConverging_impl);  
+
+  Noun::registerMonadicAdverb(StorageType::WORD_ARRAY, NounType::LIST, MonadicAdverbs::scanOver, List::scanOver_integers);
+
+  // Dyadic Adverbs
+  Noun::registerDyadicAdverb(StorageType::WORD_ARRAY, NounType::LIST, DyadicAdverbs::each2, StorageType::WORD, NounType::INTEGER, Noun::each2_impl);
+  Noun::registerDyadicAdverb(StorageType::WORD_ARRAY, NounType::LIST, DyadicAdverbs::each2, StorageType::FLOAT, NounType::REAL, Noun::each2_impl);
+  Noun::registerDyadicAdverb(StorageType::WORD_ARRAY, NounType::LIST, DyadicAdverbs::each2, StorageType::WORD_ARRAY, NounType::LIST, Noun::each2_impl);
+  Noun::registerDyadicAdverb(StorageType::WORD_ARRAY, NounType::LIST, DyadicAdverbs::each2, StorageType::FLOAT_ARRAY, NounType::LIST, Noun::each2_impl);
+  Noun::registerDyadicAdverb(StorageType::WORD_ARRAY, NounType::LIST, DyadicAdverbs::each2, StorageType::MIXED_ARRAY, NounType::LIST, Noun::each2_impl);
+  Noun::registerDyadicAdverb(StorageType::WORD_ARRAY, NounType::LIST, DyadicAdverbs::each2, StorageType::WORD, NounType::CHARACTER, Noun::each2_impl);
+  Noun::registerDyadicAdverb(StorageType::WORD_ARRAY, NounType::LIST, DyadicAdverbs::each2, StorageType::WORD_ARRAY, NounType::STRING, Noun::each2_impl);
+
+  Noun::registerDyadicAdverb(StorageType::WORD_ARRAY, NounType::LIST, DyadicAdverbs::iterate, StorageType::WORD, NounType::INTEGER, Noun::iterate_integer);  
+
   // FloatArray
   // Monads
   Noun::registerMonad(StorageType::FLOAT_ARRAY, NounType::LIST, Monads::atom, List::atom_impl);
@@ -3567,7 +4692,7 @@ void List::initialize() {
   Noun::registerMonad(StorageType::FLOAT_ARRAY, NounType::LIST, Monads::unique, List::unique_impl);
 
   // Extension Monads
-  Noun::registerMonad(StorageType::FLOAT_ARRAY, NounType::LIST, Monads::evaluate, Storage::identity);
+  Noun::registerMonad(StorageType::FLOAT_ARRAY, NounType::LIST, Monads::evaluate, Noun::identity1);
 
   // Dyads
   Noun::registerDyad(StorageType::FLOAT_ARRAY, NounType::LIST, Dyads::cut, StorageType::WORD, NounType::INTEGER, List::cut_integer);
@@ -3648,6 +4773,41 @@ void List::initialize() {
   Noun::registerDyad(StorageType::FLOAT_ARRAY, NounType::LIST, Dyads::power, StorageType::FLOAT_ARRAY, NounType::LIST, List::power_reals);
   Noun::registerDyad(StorageType::FLOAT_ARRAY, NounType::LIST, Dyads::power, StorageType::MIXED_ARRAY, NounType::LIST, List::power_mixed);  
 
+  Noun::registerDyad(StorageType::FLOAT_ARRAY, NounType::LIST, Dyads::rotate, StorageType::WORD, NounType::INTEGER, List::rotate_integer);
+
+  Noun::registerDyad(StorageType::FLOAT_ARRAY, NounType::LIST, Dyads::split, StorageType::WORD, NounType::INTEGER, List::split_integer);
+  Noun::registerDyad(StorageType::FLOAT_ARRAY, NounType::LIST, Dyads::split, StorageType::WORD_ARRAY, NounType::LIST, List::split_integers);
+
+  Noun::registerDyad(StorageType::FLOAT_ARRAY, NounType::LIST, Dyads::take, StorageType::WORD, NounType::INTEGER, List::take_integer);
+
+  Noun::registerDyad(StorageType::FLOAT_ARRAY, NounType::LIST, Dyads::times, StorageType::WORD, NounType::INTEGER, List::times_integer);
+  Noun::registerDyad(StorageType::FLOAT_ARRAY, NounType::LIST, Dyads::times, StorageType::FLOAT, NounType::REAL, List::times_real);
+  Noun::registerDyad(StorageType::FLOAT_ARRAY, NounType::LIST, Dyads::times, StorageType::WORD_ARRAY, NounType::LIST, List::times_integers);
+  Noun::registerDyad(StorageType::FLOAT_ARRAY, NounType::LIST, Dyads::times, StorageType::FLOAT_ARRAY, NounType::LIST, List::times_reals);
+  Noun::registerDyad(StorageType::FLOAT_ARRAY, NounType::LIST, Dyads::times, StorageType::MIXED_ARRAY, NounType::LIST, List::times_mixed);  
+
+  // Monadic Adverbs
+  Noun::registerMonadicAdverb(StorageType::FLOAT_ARRAY, NounType::LIST, MonadicAdverbs::converge, Noun::converge_impl);   
+
+  Noun::registerMonadicAdverb(StorageType::FLOAT_ARRAY, NounType::LIST, MonadicAdverbs::each, List::each_reals);
+  Noun::registerMonadicAdverb(StorageType::FLOAT_ARRAY, NounType::LIST, MonadicAdverbs::eachPair, List::eachPair_reals);
+  Noun::registerMonadicAdverb(StorageType::FLOAT_ARRAY, NounType::LIST, MonadicAdverbs::over, List::over_reals);
+
+  Noun::registerMonadicAdverb(StorageType::FLOAT_ARRAY, NounType::LIST, MonadicAdverbs::scanConverging, Noun::scanConverging_impl);   
+
+  Noun::registerMonadicAdverb(StorageType::FLOAT_ARRAY, NounType::LIST, MonadicAdverbs::scanOver, List::scanOver_reals);
+
+  // Dyadic Adverbs
+  Noun::registerDyadicAdverb(StorageType::FLOAT_ARRAY, NounType::LIST, DyadicAdverbs::each2, StorageType::WORD, NounType::INTEGER, Noun::each2_impl);
+  Noun::registerDyadicAdverb(StorageType::FLOAT_ARRAY, NounType::LIST, DyadicAdverbs::each2, StorageType::FLOAT, NounType::REAL, Noun::each2_impl);
+  Noun::registerDyadicAdverb(StorageType::FLOAT_ARRAY, NounType::LIST, DyadicAdverbs::each2, StorageType::WORD_ARRAY, NounType::LIST, Noun::each2_impl);
+  Noun::registerDyadicAdverb(StorageType::FLOAT_ARRAY, NounType::LIST, DyadicAdverbs::each2, StorageType::FLOAT_ARRAY, NounType::LIST, Noun::each2_impl);
+  Noun::registerDyadicAdverb(StorageType::FLOAT_ARRAY, NounType::LIST, DyadicAdverbs::each2, StorageType::MIXED_ARRAY, NounType::LIST, Noun::each2_impl);
+  Noun::registerDyadicAdverb(StorageType::FLOAT_ARRAY, NounType::LIST, DyadicAdverbs::each2, StorageType::WORD, NounType::CHARACTER, Noun::each2_impl);
+  Noun::registerDyadicAdverb(StorageType::FLOAT_ARRAY, NounType::LIST, DyadicAdverbs::each2, StorageType::WORD_ARRAY, NounType::STRING, Noun::each2_impl);
+
+  Noun::registerDyadicAdverb(StorageType::FLOAT_ARRAY, NounType::LIST, DyadicAdverbs::iterate, StorageType::WORD, NounType::INTEGER, Noun::iterate_integer);  
+
   // MixedArray
   // Monads
   Noun::registerMonad(StorageType::MIXED_ARRAY, NounType::LIST, Monads::atom, List::atom_impl);
@@ -3669,7 +4829,7 @@ void List::initialize() {
   Noun::registerMonad(StorageType::MIXED_ARRAY, NounType::LIST, Monads::unique, List::unique_impl);
 
   // Extension Monads
-  Noun::registerMonad(StorageType::MIXED_ARRAY, NounType::LIST, Monads::evaluate, Storage::identity);
+  Noun::registerMonad(StorageType::MIXED_ARRAY, NounType::LIST, Monads::evaluate, Noun::identity1);
 
   // Dyads
   Noun::registerDyad(StorageType::MIXED_ARRAY, NounType::LIST, Dyads::cut, StorageType::WORD, NounType::INTEGER, List::cut_integer);
@@ -3749,6 +4909,49 @@ void List::initialize() {
   Noun::registerDyad(StorageType::MIXED_ARRAY, NounType::LIST, Dyads::power, StorageType::WORD_ARRAY, NounType::LIST, List::power_integers);
   Noun::registerDyad(StorageType::MIXED_ARRAY, NounType::LIST, Dyads::power, StorageType::FLOAT_ARRAY, NounType::LIST, List::power_reals);
   Noun::registerDyad(StorageType::MIXED_ARRAY, NounType::LIST, Dyads::power, StorageType::MIXED_ARRAY, NounType::LIST, List::power_mixed);   
+
+  Noun::registerDyad(StorageType::MIXED_ARRAY, NounType::LIST, Dyads::remainder, StorageType::WORD, NounType::INTEGER, List::remainder_integer);
+  Noun::registerDyad(StorageType::MIXED_ARRAY, NounType::LIST, Dyads::remainder, StorageType::WORD_ARRAY, NounType::LIST, List::remainder_integers);
+  Noun::registerDyad(StorageType::MIXED_ARRAY, NounType::LIST, Dyads::remainder, StorageType::MIXED_ARRAY, NounType::LIST, List::remainder_mixed);  
+
+  Noun::registerDyad(StorageType::MIXED_ARRAY, NounType::LIST, Dyads::reshape, StorageType::WORD, NounType::INTEGER, List::reshape_integer);
+  Noun::registerDyad(StorageType::MIXED_ARRAY, NounType::LIST, Dyads::reshape, StorageType::WORD_ARRAY, NounType::LIST, List::reshape_integers);
+  Noun::registerDyad(StorageType::MIXED_ARRAY, NounType::LIST, Dyads::reshape, StorageType::MIXED_ARRAY, NounType::LIST, List::reshape_mixed);  
+
+  Noun::registerDyad(StorageType::MIXED_ARRAY, NounType::LIST, Dyads::rotate, StorageType::WORD, NounType::INTEGER, List::rotate_integer);
+
+  Noun::registerDyad(StorageType::MIXED_ARRAY, NounType::LIST, Dyads::split, StorageType::WORD, NounType::INTEGER, List::split_integer);
+  Noun::registerDyad(StorageType::MIXED_ARRAY, NounType::LIST, Dyads::split, StorageType::WORD_ARRAY, NounType::LIST, List::split_integers);
+
+  Noun::registerDyad(StorageType::MIXED_ARRAY, NounType::LIST, Dyads::take, StorageType::WORD, NounType::INTEGER, List::take_integer);  
+
+  Noun::registerDyad(StorageType::MIXED_ARRAY, NounType::LIST, Dyads::times, StorageType::WORD, NounType::INTEGER, List::times_integer);
+  Noun::registerDyad(StorageType::MIXED_ARRAY, NounType::LIST, Dyads::times, StorageType::FLOAT, NounType::REAL, List::times_real);
+  Noun::registerDyad(StorageType::MIXED_ARRAY, NounType::LIST, Dyads::times, StorageType::WORD_ARRAY, NounType::LIST, List::times_integers);
+  Noun::registerDyad(StorageType::MIXED_ARRAY, NounType::LIST, Dyads::times, StorageType::FLOAT_ARRAY, NounType::LIST, List::times_reals);
+  Noun::registerDyad(StorageType::MIXED_ARRAY, NounType::LIST, Dyads::times, StorageType::MIXED_ARRAY, NounType::LIST, List::times_mixed);   
+
+  // Monadic Adverbs
+  Noun::registerMonadicAdverb(StorageType::MIXED_ARRAY, NounType::LIST, MonadicAdverbs::converge, Noun::converge_impl);
+
+  Noun::registerMonadicAdverb(StorageType::MIXED_ARRAY, NounType::LIST, MonadicAdverbs::each, List::each_mixed);
+  Noun::registerMonadicAdverb(StorageType::MIXED_ARRAY, NounType::LIST, MonadicAdverbs::eachPair, List::eachPair_mixed);
+  Noun::registerMonadicAdverb(StorageType::MIXED_ARRAY, NounType::LIST, MonadicAdverbs::over, List::over_mixed);
+
+  Noun::registerMonadicAdverb(StorageType::MIXED_ARRAY, NounType::LIST, MonadicAdverbs::scanConverging, Noun::scanConverging_impl);
+
+  Noun::registerMonadicAdverb(StorageType::MIXED_ARRAY, NounType::LIST, MonadicAdverbs::scanOver, List::scanOver_mixed);
+
+  // Dyadic Adverbs
+  Noun::registerDyadicAdverb(StorageType::MIXED_ARRAY, NounType::LIST, DyadicAdverbs::each2, StorageType::WORD, NounType::INTEGER, Noun::each2_impl);
+  Noun::registerDyadicAdverb(StorageType::MIXED_ARRAY, NounType::LIST, DyadicAdverbs::each2, StorageType::FLOAT, NounType::REAL, Noun::each2_impl);
+  Noun::registerDyadicAdverb(StorageType::MIXED_ARRAY, NounType::LIST, DyadicAdverbs::each2, StorageType::WORD_ARRAY, NounType::LIST, Noun::each2_impl);
+  Noun::registerDyadicAdverb(StorageType::MIXED_ARRAY, NounType::LIST, DyadicAdverbs::each2, StorageType::FLOAT_ARRAY, NounType::LIST, Noun::each2_impl);
+  Noun::registerDyadicAdverb(StorageType::MIXED_ARRAY, NounType::LIST, DyadicAdverbs::each2, StorageType::MIXED_ARRAY, NounType::LIST, Noun::each2_impl);
+  Noun::registerDyadicAdverb(StorageType::MIXED_ARRAY, NounType::LIST, DyadicAdverbs::each2, StorageType::WORD, NounType::CHARACTER, Noun::each2_impl);
+  Noun::registerDyadicAdverb(StorageType::MIXED_ARRAY, NounType::LIST, DyadicAdverbs::each2, StorageType::WORD_ARRAY, NounType::STRING, Noun::each2_impl);
+
+  Noun::registerDyadicAdverb(StorageType::MIXED_ARRAY, NounType::LIST, DyadicAdverbs::iterate, StorageType::WORD, NounType::INTEGER, Noun::iterate_integer);
 }
 
 Storage List::atom_impl(Storage i) {
@@ -9970,6 +11173,1630 @@ Storage List::power_mixed(Storage i, Storage x)
   return Word::make(UNSUPPORTED_OBJECT, NounType::ERROR);
 }
 
+Storage List::remainder_integer(Storage i, Storage x)
+{
+  if(std::holds_alternative<int>(x.i))
+  {
+    int xi = std::get<int>(x.i);
+
+    if(std::holds_alternative<ints>(i.i))
+    {
+      ints iis = std::get<ints>(i.i);
+
+      ints results = ints();
+
+      for(int y : iis)
+      {
+        results.push_back(y % xi);
+      }
+
+      return WordArray::make(results);
+    }
+    else if(std::holds_alternative<mixed>(i.i))
+    {
+      mixed iis = std::get<mixed>(i.i);
+
+      mixed results = mixed();
+
+      for(Storage sy : iis)
+      {
+        Storage result = remainder(sy, x);
+        if(result.o == NounType::ERROR)
+        {
+          return result;
+        }
+
+        results.push_back(result);
+      }
+
+      return MixedArray::make(results);
+    }
+  }
+
+  return Word::make(UNSUPPORTED_OBJECT, NounType::ERROR);
+}
+
+Storage List::remainder_integers(Storage i, Storage x)
+{
+  if(std::holds_alternative<ints>(x.i))
+  {
+    ints xis = std::get<ints>(x.i);
+
+    if(std::holds_alternative<ints>(i.i))
+    {
+      ints iis = std::get<ints>(i.i);
+
+      if(iis.size() != xis.size())
+      {
+        return Word::make(UNEQUAL_ARRAY_LENGTHS, NounType::ERROR);
+      }
+
+      ints results = ints();
+
+      for(int index = 0; index < iis.size(); index++)
+      {
+        int ii = iis[index];
+        int xi = xis[index];
+
+        results.push_back(ii % xi);       
+      }
+
+      return WordArray::make(results);
+    }
+    else if(std::holds_alternative<mixed>(i.i))
+    {
+      mixed iis = std::get<mixed>(i.i);
+
+      if(iis.size() != xis.size())
+      {
+        return Word::make(UNEQUAL_ARRAY_LENGTHS, NounType::ERROR);
+      }
+
+      mixed results = mixed();
+
+      for(int index = 0; index < iis.size(); index++)
+      {
+        int xi = xis[index];
+        Storage sx = Word::make(xi);
+
+        Storage sy = iis[index];
+
+        Storage result = remainder(sy, sx);
+        if(result.o == NounType::ERROR)
+        {
+          return result;
+        }
+
+        results.push_back(result);
+      }
+
+      return MixedArray::make(results);
+    }
+  }
+
+  return Word::make(UNSUPPORTED_OBJECT, NounType::ERROR);
+}
+
+Storage List::remainder_mixed(Storage i, Storage x)
+{
+  if(std::holds_alternative<mixed>(x.i))
+  {
+    mixed xis = std::get<mixed>(x.i);
+
+    if(std::holds_alternative<ints>(i.i))
+    {
+      ints iis = std::get<ints>(i.i);
+
+      if(iis.size() != xis.size())
+      {
+        return Word::make(UNEQUAL_ARRAY_LENGTHS, NounType::ERROR);
+      }
+
+      mixed results = mixed();
+
+      for(int index = 0; index < iis.size(); index++)
+      {
+        int ii = iis[index];
+        Storage si = Word::make(ii);
+
+        Storage sx = xis[index];
+        
+        Storage result = remainder(si, sx);
+        if(result.o == NounType::ERROR)
+        {
+          return result;
+        }
+
+        results.push_back(result);
+      }
+
+      return MixedArray::make(results);
+    }
+    else if(std::holds_alternative<mixed>(i.i))
+    {
+      mixed iis = std::get<mixed>(i.i);
+
+      if(iis.size() != xis.size())
+      {
+        return Word::make(UNEQUAL_ARRAY_LENGTHS, NounType::ERROR);
+      }
+
+      mixed results = mixed();
+
+      for(int index = 0; index < iis.size(); index++)
+      {
+        Storage si = iis[index];
+        Storage sx = xis[index];
+        
+        Storage result = remainder(si, sx);
+        if(result.o == NounType::ERROR)
+        {
+          return result;
+        }
+
+        results.push_back(result);
+      }
+
+      return MixedArray::make(results);
+    }
+  }
+
+  return Word::make(UNSUPPORTED_OBJECT, NounType::ERROR);
+}
+
+Storage List::reshape_integer(Storage i, Storage x)
+{
+  if(std::holds_alternative<int>(x.i))
+  {
+    int xi = std::get<int>(x.i);
+
+    if(xi == 0)
+    {
+      return i;
+    }
+
+    if(xi < -1)
+    {
+      return Word::make(INVALID_ARGUMENT, NounType::ERROR);
+    }
+
+    if(xi == -1)
+    {
+      xi = getInteger(divide(size(i), Word::make(2)));
+    }
+
+    if(std::holds_alternative<ints>(i.i))
+    {
+      ints iis = std::get<ints>(i.i);
+
+      ints results = ints();
+
+      for(int index = 0; index < xi; index++)
+      {
+        int cyclingIndex = index % iis.size();
+        results.push_back(iis[cyclingIndex]);
+      }
+
+      return WordArray::make(results);
+    }
+    else if(std::holds_alternative<floats>(i.i))
+    {
+      floats iis = std::get<floats>(i.i);
+
+      floats results = floats();
+
+      for(int index = 0; index < xi; index++)
+      {
+        int cyclingIndex = index % iis.size();
+        results.push_back(iis[cyclingIndex]);
+      }
+
+      return FloatArray::make(results);
+    }
+    else if(std::holds_alternative<mixed>(i.i))
+    {
+      mixed iis = std::get<mixed>(i.i);
+
+      mixed results = mixed();
+
+      for(int index = 0; index < xi; index++)
+      {
+        int cyclingIndex = index % iis.size();
+        results.push_back(iis[cyclingIndex]);
+      }
+
+      return MixedArray::make(results);
+    }
+  }
+
+  return Word::make(UNSUPPORTED_OBJECT, NounType::ERROR);
+}
+
+Storage List::reshape_integers(Storage i, Storage x)
+{
+  int halfSize = getInteger(integerDivide(size(i), Word::make(2)));
+
+  if(std::holds_alternative<ints>(x.i))
+  {
+    ints xis = std::get<ints>(x.i);
+
+    if(xis.empty())
+    {
+      return Word::make(INVALID_ARGUMENT, NounType::ERROR);
+    }
+
+    ints lengths = ints();
+    for(int xi : xis)
+    {
+      if(xi == 0 || xi < -1)
+      {
+        return Word::make(INVALID_ARGUMENT, NounType::ERROR);
+      }
+      else if(xi == -1)
+      {
+        lengths.push_back(halfSize);
+      }
+      else
+      {
+        // else xi > 0
+        lengths.push_back(xi);
+      }
+    }
+
+    if(lengths.size() == 1)
+    {
+      int xi = lengths[0];
+      Storage sx = Word::make(xi);
+
+      return reshape(i, sx);
+    }
+    else // lengths.size() > 1
+    {
+      Storage totals = reverse(scanOver(WordArray::make(lengths), Word::make(Dyads::times, NounType::BUILTIN_DYAD)));
+
+      Storage working = reshape(i, index(totals, Integer::make(0)));
+
+      return overNeutral(working, Word::make(Dyads::split, NounType::BUILTIN_DYAD), totals);
+    }
+  }
+
+  return Word::make(UNSUPPORTED_OBJECT, NounType::ERROR);
+}
+
+Storage List::reshape_mixed(Storage i, Storage x)
+{
+  if(std::holds_alternative<mixed>(x.i))
+  {
+    mixed xis = std::get<mixed>(x.i);
+
+    if(std::holds_alternative<ints>(i.i))
+    {
+      ints iis = std::get<ints>(i.i);
+
+      if(iis.size() != xis.size())
+      {
+        return Word::make(UNEQUAL_ARRAY_LENGTHS, NounType::ERROR);
+      }
+
+      mixed results = mixed();
+
+      for(int index = 0; index < iis.size(); index++)
+      {
+        int ii = iis[index];
+        Storage si = Word::make(ii);
+
+        Storage sx = xis[index];
+        
+        Storage result = reshape(si, sx);
+        if(result.o == NounType::ERROR)
+        {
+          return result;
+        }
+
+        results.push_back(result);
+      }
+
+      return MixedArray::make(results);
+    }
+    else if(std::holds_alternative<mixed>(i.i))
+    {
+      mixed iis = std::get<mixed>(i.i);
+
+      if(iis.size() != xis.size())
+      {
+        return Word::make(UNEQUAL_ARRAY_LENGTHS, NounType::ERROR);
+      }
+
+      mixed results = mixed();
+
+      for(int index = 0; index < iis.size(); index++)
+      {
+        Storage si = iis[index];
+        Storage sx = xis[index];
+        
+        Storage result = reshape(si, sx);
+        if(result.o == NounType::ERROR)
+        {
+          return result;
+        }
+
+        results.push_back(result);
+      }
+
+      return MixedArray::make(results);
+    }
+  }
+
+  return Word::make(UNSUPPORTED_OBJECT, NounType::ERROR);
+}
+
+Storage List::rotate_integer(Storage i, Storage x)
+{
+  if(std::holds_alternative<ints>(i.i))
+  {
+    ints iis = std::get<ints>(i.i);
+
+    if(iis.empty())
+    {
+      return i;
+    }
+
+    if(std::holds_alternative<int>(x.i))
+    {
+      int xi = std::get<int>(x.i);
+
+      if(xi == 0)
+      {
+        return i;
+      }
+
+      if(xi > 0)
+      {
+        int offset = iis.size() - (xi % iis.size());
+
+        ints results(iis.begin() + offset, iis.end());
+        results.insert(results.end(), iis.begin(), iis.begin() + offset);
+        return WordArray::make(results, NounType::LIST);
+      }
+      else // x < 0
+      {
+        xi = -xi;
+
+        int offset = xi % iis.size();
+
+        ints results(iis.begin() + offset, iis.end());
+        results.insert(results.end(), iis.begin(), iis.begin() + offset);
+        return WordArray::make(results, NounType::LIST);
+      }
+    }
+  }
+  else if(std::holds_alternative<floats>(i.i))
+  {
+    floats iis = std::get<floats>(i.i);
+
+    if(iis.empty())
+    {
+      return i;
+    }
+
+    if(std::holds_alternative<int>(x.i))
+    {
+      int xi = std::get<int>(x.i);
+
+      if(xi == 0)
+      {
+        return i;
+      }
+
+      if(xi > 0)
+      {
+        int offset = iis.size() - (xi % iis.size());
+
+        floats results(iis.begin() + offset, iis.end());
+        results.insert(results.end(), iis.begin(), iis.begin() + offset);
+        return FloatArray::make(results, NounType::LIST);
+      }
+      else // x < 0
+      {
+        xi = -xi;
+
+        int offset = xi % iis.size();
+
+        floats results(iis.begin() + offset, iis.end());
+        results.insert(results.end(), iis.begin(), iis.begin() + offset);
+        return FloatArray::make(results, NounType::LIST);
+      }
+    }
+  }
+  else if(std::holds_alternative<mixed>(i.i))
+  {
+    mixed iis = std::get<mixed>(i.i);
+
+    if(iis.empty())
+    {
+      return i;
+    }
+
+    if(std::holds_alternative<int>(x.i))
+    {
+      int xi = std::get<int>(x.i);
+
+      if(xi == 0)
+      {
+        return i;
+      }
+
+      if(xi > 0)
+      {
+        int offset = iis.size() - (xi % iis.size());
+
+        mixed results(iis.begin() + offset, iis.end());
+        results.insert(results.end(), iis.begin(), iis.begin() + offset);
+        return MixedArray::make(results, NounType::LIST);
+      }
+      else // x < 0
+      {
+        xi = -xi;
+
+        int offset = xi % iis.size();
+
+        mixed results(iis.begin() + offset, iis.end());
+        results.insert(results.end(), iis.begin(), iis.begin() + offset);
+        return MixedArray::make(results, NounType::LIST);
+      }
+    }
+  }
+
+  return Word::make(UNSUPPORTED_OBJECT, NounType::ERROR);
+}
+
+Storage List::split_integer(Storage i, Storage x)
+{
+  if(std::holds_alternative<int>(x.i))
+  {
+    int xi = std::get<int>(x.i);
+
+    if(std::holds_alternative<ints>(i.i))
+    {
+      ints iis = std::get<ints>(i.i);
+
+      if(xi > 0)
+      {
+        if(xi >= iis.size())
+        {
+          mixed results = mixed();
+          results.push_back(i);
+
+          return MixedArray::make(results);
+        }
+
+        mixed results = mixed();
+
+        ints result = ints();
+        for(int index = 0; index < iis.size(); index++)
+        {
+          result.push_back(iis[index]);
+
+          if(result.size() == xi)
+          {
+            results.push_back(WordArray::make(result));
+            result = ints();
+          }
+        }
+
+        if(result.size() > 0)
+        {
+          results.push_back(WordArray::make(result));
+        }
+
+        return MixedArray::make(results);
+      }
+    }
+    else if(std::holds_alternative<floats>(i.i))
+    {
+      floats iis = std::get<floats>(i.i);
+
+      if(xi > 0)
+      {
+        if(xi >= iis.size())
+        {
+          mixed results = mixed();
+          results.push_back(i);
+
+          return MixedArray::make(results);
+        }
+
+        mixed results = mixed();
+
+        floats result = floats();
+        for(int index = 0; index < iis.size(); index++)
+        {
+          result.push_back(iis[index]);
+
+          if(result.size() == xi)
+          {
+            results.push_back(FloatArray::make(result));
+            result = floats();
+          }
+        }
+
+        if(result.size() > 0)
+        {
+          results.push_back(FloatArray::make(result));
+        }
+
+        return MixedArray::make(results);
+      }
+    }
+    else if(std::holds_alternative<mixed>(i.i))
+    {
+      mixed iis = std::get<mixed>(i.i);
+
+      if(xi > 0)
+      {
+        if(xi >= iis.size())
+        {
+          mixed results = mixed();
+          results.push_back(i);
+
+          return MixedArray::make(results);
+        }
+
+        mixed results = mixed();
+
+        mixed result = mixed();
+        for(int index = 0; index < iis.size(); index++)
+        {
+          result.push_back(iis[index]);
+
+          if(result.size() == xi)
+          {
+            results.push_back(MixedArray::make(result));
+            result = mixed();
+          }
+        }
+
+        if(result.size() > 0)
+        {
+          results.push_back(MixedArray::make(result));
+        }
+
+        return MixedArray::make(results);
+      }
+    }
+  }
+
+  return Word::make(UNSUPPORTED_OBJECT, NounType::ERROR);
+}
+
+Storage List::split_integers(Storage i, Storage x)
+{
+  if(std::holds_alternative<ints>(x.i))
+  {
+    ints xis = std::get<ints>(x.i);
+
+    if(xis.empty())
+    {
+      return Word::make(INVALID_ARGUMENT, NounType::ERROR);
+    }
+
+    if(std::holds_alternative<ints>(i.i))
+    {
+      ints iis = std::get<ints>(i.i);
+
+      mixed results = mixed();
+
+      int count = 0;
+      int index = 0;
+      while(count < iis.size())
+      {
+        int y = xis[index++ % xis.size()]; // cycle
+
+        if(count + y > iis.size())
+        {
+          ints result(iis.begin() + count, iis.end());
+          results.push_back(WordArray::make(result));
+          break;
+        }
+        else
+        {
+          ints result(iis.begin() + count, iis.begin() + count + y);
+          results.push_back(WordArray::make(result));
+        }
+
+        count = count + y;
+      }
+
+      return MixedArray::make(results);
+    }
+    else if(std::holds_alternative<floats>(i.i))
+    {
+      floats iis = std::get<floats>(i.i);
+
+      mixed results = mixed();
+
+      int count = 0;
+      int index = 0;
+      while(count < iis.size())
+      {
+        int y = xis[index++ % xis.size()]; // cycle
+
+        if(count + y > iis.size())
+        {
+          floats result(iis.begin(), iis.end());
+          results.push_back(FloatArray::make(result));
+          break;
+        }
+        else
+        {
+          floats result(iis.begin() + count, iis.begin() + count + y);
+          results.push_back(FloatArray::make(result));
+        }
+
+        count = count + y;
+      }
+
+      if(count < iis.size())
+      {
+          floats result(iis.begin() + count, iis.end());
+          results.push_back(FloatArray::make(result));
+      }
+
+      return MixedArray::make(results);
+    }
+    else if(std::holds_alternative<mixed>(i.i))
+    {
+      mixed iis = std::get<mixed>(i.i);
+      mixed results = mixed();
+
+      int count = 0;
+      int index = 0;
+      while(count < iis.size())
+      {
+        int y = xis[index++ % xis.size()]; // cycle
+        
+        if(count + y > iis.size())
+        {
+          mixed result(iis.begin(), iis.end());
+          results.push_back(MixedArray::make(result));
+          break;
+        }
+        else
+        {
+          mixed result(iis.begin() + count, iis.begin() + count + y);
+          results.push_back(MixedArray::make(result));
+        }
+
+        count = count + y;
+      }
+
+      if(count < iis.size())
+      {
+          mixed result(iis.begin() + count, iis.end());
+          results.push_back(MixedArray::make(result));
+      }
+
+      return MixedArray::make(results);
+    }
+  }
+
+  return Word::make(UNSUPPORTED_OBJECT, NounType::ERROR);
+}
+
+Storage List::take_integer(Storage i, Storage x)
+{
+  if(std::holds_alternative<int>(x.i))
+  {
+    int xi = std::get<int>(x.i);
+
+    if(std::holds_alternative<ints>(i.i))
+    {
+      ints iis = std::get<ints>(i.i);
+
+      if(iis.empty())
+      {
+        return i;
+      }
+
+      if(xi == 0)
+      {
+        return WordArray::nil();
+      }
+      else if(xi > 0)
+      {
+        ints results = ints();
+        for(int index = 0; index < xi; index++)
+        {
+          results.push_back(iis[index % iis.size()]); // cycle through iis
+        }
+
+        return WordArray::make(results);
+      }
+      else if(xi < 0)
+      {
+        xi = -xi;
+        int start = iis.size() - (xi % iis.size());
+
+        ints results = ints();
+        for(int offset = 0; offset < xi; offset++)
+        {
+          int index = (start + offset) % iis.size();
+          results.push_back(iis[index]);
+        }
+
+        return WordArray::make(results);
+      }
+    }
+    else if(std::holds_alternative<floats>(i.i))
+    {
+      floats iis = std::get<floats>(i.i);
+
+      if(iis.empty())
+      {
+        return i;
+      }
+
+      if(xi == 0)
+      {
+        return WordArray::nil();
+      }
+
+      if(xi > 0)
+      {
+        floats results = floats();
+        for(int index = 0; index < xi; index++)
+        {
+          results.push_back(iis[index % iis.size()]); // cycle through iis
+        }
+
+        return FloatArray::make(results);
+      }
+      else if(xi < 0)
+      {
+        xi = -xi;
+        int start = iis.size() - (xi % iis.size());
+
+        floats results = floats();
+        for(int offset = 0; offset < xi; offset++)
+        {
+          int index = (start + offset) % iis.size();
+          results.push_back(iis[index]);
+        }
+
+        return FloatArray::make(results);
+      }
+    }
+    else if(std::holds_alternative<mixed>(i.i))
+    {
+      mixed iis = std::get<mixed>(i.i);
+
+      if(iis.empty())
+      {
+        return i;
+      }
+
+      if(xi == 0)
+      {
+        return WordArray::nil();
+      }
+
+      if(xi > 0)
+      {
+        mixed results = mixed();
+        for(int index = 0; index < xi; index++)
+        {
+          results.push_back(iis[index % iis.size()]); // cycle through iis
+        }
+
+        return MixedArray::make(results);
+      }
+      else if(xi < 0)
+      {
+        xi = -xi;
+        int start = iis.size() - (xi % iis.size());
+
+        mixed results = mixed();
+        for(int offset = 0; offset < xi; offset++)
+        {
+          int index = (start + offset) % iis.size();
+          results.push_back(iis[index]);
+        }
+
+        return MixedArray::make(results);
+      }
+    }
+  }
+
+  return Word::make(UNSUPPORTED_OBJECT, NounType::ERROR);
+}
+
+Storage List::times_integer(Storage i, Storage x)
+{
+  if(std::holds_alternative<int>(x.i))
+  {
+    int xi = std::get<int>(x.i);
+
+    if(std::holds_alternative<ints>(i.i))
+    {
+      ints iis = std::get<ints>(i.i);
+
+      ints results = ints();
+
+      for(int y : iis)
+      {
+        results.push_back(y * xi);
+      }
+
+      return WordArray::make(results);
+    }
+    else if(std::holds_alternative<floats>(i.i))
+    {
+      floats iis = std::get<floats>(i.i);
+      float fx = static_cast<float>(xi);
+
+      floats results = floats();
+
+      for(int fy : iis)
+      {
+        results.push_back(fy * fx);
+      }
+
+      return FloatArray::make(results);
+    }
+    else if(std::holds_alternative<mixed>(i.i))
+    {
+      mixed iis = std::get<mixed>(i.i);
+
+      mixed results = mixed();
+
+      for(Storage sy : iis)
+      {
+        Storage result = times(sy, x);
+        if(result.o == NounType::ERROR)
+        {
+          return result;
+        }
+
+        results.push_back(result);
+      }
+
+      return MixedArray::make(results);
+    }
+  }
+
+  return Word::make(UNSUPPORTED_OBJECT, NounType::ERROR);
+}
+
+Storage List::times_real(Storage i, Storage x)
+{
+  if(std::holds_alternative<float>(x.i))
+  {
+    float fx = std::get<float>(x.i);
+
+    if(std::holds_alternative<ints>(i.i))
+    {
+      ints iis = std::get<ints>(i.i);
+
+      floats results = floats();
+
+      for(int y : iis)
+      {
+        float fy = static_cast<float>(y);
+
+        results.push_back(fy * fx);
+      }
+
+      return FloatArray::make(results);
+    }
+    else if(std::holds_alternative<floats>(i.i))
+    {
+      floats iis = std::get<floats>(i.i);
+
+      floats results = floats();
+
+      for(float fy : iis)
+      {
+        results.push_back(fy * fx);
+      }
+
+      return FloatArray::make(results);
+    }
+    else if(std::holds_alternative<mixed>(i.i))
+    {
+      mixed iis = std::get<mixed>(i.i);
+
+      mixed results = mixed();
+
+      for(Storage sy : iis)
+      {
+        Storage result = times(sy, x);
+        if(result.o == NounType::ERROR)
+        {
+          return result;
+        }
+
+        results.push_back(result);
+      }
+
+      return MixedArray::make(results);
+    }
+  }
+
+  return Word::make(UNSUPPORTED_OBJECT, NounType::ERROR);
+}
+
+Storage List::times_integers(Storage i, Storage x)
+{
+  if(std::holds_alternative<ints>(x.i))
+  {
+    ints xis = std::get<ints>(x.i);
+
+    if(std::holds_alternative<ints>(i.i))
+    {
+      ints iis = std::get<ints>(i.i);
+
+      if(iis.size() != xis.size())
+      {
+        return Word::make(UNEQUAL_ARRAY_LENGTHS, NounType::ERROR);
+      }
+
+      ints results = ints();
+
+      for(int index = 0; index < iis.size(); index++)
+      {
+        int xi = xis[index];
+        int ii = iis[index];
+
+        results.push_back(ii * xi);       
+      }
+
+      return WordArray::make(results);
+    }
+    else if(std::holds_alternative<floats>(i.i))
+    {
+      floats iis = std::get<floats>(i.i);
+
+      if(iis.size() != xis.size())
+      {
+        return Word::make(UNEQUAL_ARRAY_LENGTHS, NounType::ERROR);
+      }
+
+      floats results = floats();
+
+      for(int index = 0; index < iis.size(); index++)
+      {
+        int xi = xis[index];
+        float fx = static_cast<float>(xi);
+
+        float fi = iis[index];
+
+        results.push_back(fi * fx);
+      }
+
+      return FloatArray::make(results);
+    }
+    else if(std::holds_alternative<mixed>(i.i))
+    {
+      mixed iis = std::get<mixed>(i.i);
+
+      if(iis.size() != xis.size())
+      {
+        return Word::make(UNEQUAL_ARRAY_LENGTHS, NounType::ERROR);
+      }
+
+      mixed results = mixed();
+
+      for(int index = 0; index < iis.size(); index++)
+      {
+        int xi = xis[index];
+        Storage sx = Word::make(xi);
+
+        Storage sy = iis[index];
+
+        Storage result = times(sy, sx);
+        if(result.o == NounType::ERROR)
+        {
+          return result;
+        }
+
+        results.push_back(result);
+      }
+
+      return MixedArray::make(results);
+    }
+  }
+
+  return Word::make(UNSUPPORTED_OBJECT, NounType::ERROR);
+}
+
+Storage List::times_reals(Storage i, Storage x)
+{
+  if(std::holds_alternative<floats>(x.i))
+  {
+    floats xis = std::get<floats>(x.i);
+
+    if(std::holds_alternative<ints>(i.i))
+    {
+      ints iis = std::get<ints>(i.i);
+
+      if(iis.size() != xis.size())
+      {
+        return Word::make(UNEQUAL_ARRAY_LENGTHS, NounType::ERROR);
+      }
+
+      floats results = floats();
+
+      for(int index = 0; index < iis.size(); index++)
+      {
+        int ii = iis[index];
+        float fi = static_cast<float>(ii);
+
+        float fx = xis[index];
+
+        results.push_back(fi * fx);       
+      }
+
+      return FloatArray::make(results);
+    }
+    else if(std::holds_alternative<floats>(i.i))
+    {
+      floats iis = std::get<floats>(i.i);
+
+      if(iis.size() != xis.size())
+      {
+        return Word::make(UNEQUAL_ARRAY_LENGTHS, NounType::ERROR);
+      }
+
+      floats results = floats();
+
+      for(int index = 0; index < iis.size(); index++)
+      {
+        float fx = xis[index];
+        float fi = iis[index];
+
+        results.push_back(fi * fx);
+      }
+
+      return FloatArray::make(results);
+    }
+    else if(std::holds_alternative<mixed>(i.i))
+    {
+      mixed iis = std::get<mixed>(i.i);
+
+      if(iis.size() != xis.size())
+      {
+        return Word::make(UNEQUAL_ARRAY_LENGTHS, NounType::ERROR);
+      }
+
+      mixed results = mixed();
+
+      for(int index = 0; index < iis.size(); index++)
+      {
+        float xi = xis[index];
+        Storage sx = Float::make(xi);
+
+        Storage sy = iis[index];
+
+        Storage result = times(sy, sx);
+        if(result.o == NounType::ERROR)
+        {
+          return result;
+        }
+
+        results.push_back(result);
+      }
+
+      return MixedArray::make(results);
+    }
+  }
+
+  return Word::make(UNSUPPORTED_OBJECT, NounType::ERROR);
+}
+
+Storage List::times_mixed(Storage i, Storage x)
+{
+  if(std::holds_alternative<mixed>(x.i))
+  {
+    mixed xis = std::get<mixed>(x.i);
+
+    if(std::holds_alternative<ints>(i.i))
+    {
+      ints iis = std::get<ints>(i.i);
+
+      if(iis.size() != xis.size())
+      {
+        return Word::make(UNEQUAL_ARRAY_LENGTHS, NounType::ERROR);
+      }
+
+      mixed results = mixed();
+
+      for(int index = 0; index < iis.size(); index++)
+      {
+        int ii = iis[index];
+        Storage si = Word::make(ii);
+
+        Storage sx = xis[index];
+        
+        Storage result = times(si, sx);
+        if(result.o == NounType::ERROR)
+        {
+          return result;
+        }
+
+        results.push_back(result);
+      }
+
+      return MixedArray::make(results);
+    }
+    else if(std::holds_alternative<floats>(i.i))
+    {
+      floats iis = std::get<floats>(i.i);
+
+      if(iis.size() != xis.size())
+      {
+        return Word::make(UNEQUAL_ARRAY_LENGTHS, NounType::ERROR);
+      }
+
+      mixed results = mixed();
+
+      for(int index = 0; index < iis.size(); index++)
+      {
+        float ii = iis[index];
+        Storage si = Float::make(ii);
+
+        Storage sx = xis[index];
+        
+        Storage result = times(si, sx);
+        if(result.o == NounType::ERROR)
+        {
+          return result;
+        }
+
+        results.push_back(result);
+      }
+
+      return MixedArray::make(results);
+    }
+    else if(std::holds_alternative<mixed>(i.i))
+    {
+      mixed iis = std::get<mixed>(i.i);
+
+      if(iis.size() != xis.size())
+      {
+        return Word::make(UNEQUAL_ARRAY_LENGTHS, NounType::ERROR);
+      }
+
+      mixed results = mixed();
+
+      for(int index = 0; index < iis.size(); index++)
+      {
+        Storage si = iis[index];
+        Storage sx = xis[index];
+        
+        Storage result = times(si, sx);
+        if(result.o == NounType::ERROR)
+        {
+          return result;
+        }
+
+        results.push_back(result);
+      }
+
+      return MixedArray::make(results);
+    }
+  }
+
+  return Word::make(UNSUPPORTED_OBJECT, NounType::ERROR);
+}
+
+// Monadic Adverbs
+Storage List::each_integers(Storage i, Storage f)
+{
+  if(std::holds_alternative<ints>(i.i))
+  {
+    ints iis = std::get<ints>(i.i);
+
+    mixed results = mixed();
+    for(int y : iis)
+    {
+      Storage result = Noun::dispatchMonad(i, Word::make(y));
+
+      if(result.o == NounType::ERROR)
+      {
+        return result;
+      }
+
+      results.push_back(result);
+    }
+
+    return Noun::simplify(MixedArray::make(results));
+  }
+
+  return Word::make(UNSUPPORTED_OBJECT, NounType::ERROR);
+}
+
+Storage List::each_reals(Storage i, Storage f)
+{
+  if(std::holds_alternative<floats>(i.i))
+  {
+    floats iis = std::get<floats>(i.i);
+
+    mixed results = mixed();
+    for(int y : iis)
+    {
+      Storage result = Noun::dispatchMonad(i, Float::make(y));
+
+      if(result.o == NounType::ERROR)
+      {
+        return result;
+      }
+
+      results.push_back(result);
+    }
+
+    return Noun::simplify(MixedArray::make(results));
+  }
+
+  return Word::make(UNSUPPORTED_OBJECT, NounType::ERROR);
+}
+
+Storage List::each_mixed(Storage i, Storage f)
+{
+  if(std::holds_alternative<mixed>(i.i))
+  {
+    mixed iis = std::get<mixed>(i.i);
+
+    mixed results = mixed();
+    for(Storage y : iis)
+    {
+      Storage result = Noun::dispatchMonad(i, y);
+
+      if(result.o == NounType::ERROR)
+      {
+        return result;
+      }
+
+      results.push_back(result);
+    }
+
+    return Noun::simplify(MixedArray::make(results));
+  }
+
+  return Word::make(UNSUPPORTED_OBJECT, NounType::ERROR);
+}
+
+Storage List::eachPair_integers(Storage i, Storage f)
+{
+  if(std::holds_alternative<ints>(i.i))
+  {
+    ints iis = std::get<ints>(i.i);
+
+    mixed results = mixed();
+    for(int index = 0; index < iis.size() - 1; index++)
+    {
+      int y = iis[index];
+      int z = iis[index+1];
+      Storage result = Noun::dispatchDyad(Word::make(y), f, Word::make(z));
+
+      if(result.o == NounType::ERROR)
+      {
+        return result;
+      }
+
+      results.push_back(result);
+    }
+
+    return Noun::simplify(MixedArray::make(results));
+  }
+
+  return Word::make(UNSUPPORTED_OBJECT, NounType::ERROR);
+}
+
+Storage List::eachPair_reals(Storage i, Storage f)
+{
+  if(std::holds_alternative<floats>(i.i))
+  {
+    floats iis = std::get<floats>(i.i);
+
+    mixed results = mixed();
+    for(int index = 0; index < iis.size() - 1; index++)
+    {
+      float y = iis[index];
+      float z = iis[index+1];
+      Storage result = Noun::dispatchDyad(Float::make(y), f, Float::make(z));
+
+      if(result.o == NounType::ERROR)
+      {
+        return result;
+      }
+
+      results.push_back(result);
+    }
+
+    return Noun::simplify(MixedArray::make(results));
+  }
+
+  return Word::make(UNSUPPORTED_OBJECT, NounType::ERROR);
+}
+
+Storage List::eachPair_mixed(Storage i, Storage f)
+{
+  if(std::holds_alternative<mixed>(i.i))
+  {
+    mixed iis = std::get<mixed>(i.i);
+
+    mixed results = mixed();
+    for(int index = 0; index < iis.size() - 1; index++)
+    {
+      Storage y = iis[index];
+      Storage z = iis[index+1];
+      Storage result = Noun::dispatchDyad(y, f, z);
+
+      if(result.o == NounType::ERROR)
+      {
+        return result;
+      }
+
+      results.push_back(result);
+    }
+
+    return Noun::simplify(MixedArray::make(results));
+  }
+
+  return Word::make(UNSUPPORTED_OBJECT, NounType::ERROR);
+}
+
+Storage List::over_integers(Storage i, Storage f)
+{
+  if(std::holds_alternative<ints>(i.i))
+  {
+    ints iis = std::get<ints>(i.i);
+
+    if(iis.empty())
+    {
+      return i;
+    }
+
+    if(iis.size() == 1)
+    {
+      int result = iis[0];
+      return Word::make(result);
+    }
+
+    // else iis.size() > 1
+
+    Storage y = Word::make(iis[0]);
+
+    for(int index = 1; index < iis.size(); index++)
+    {
+      Storage z = Word::make(iis[index]);
+
+      Storage result = Noun::dispatchDyad(y, f, z);
+
+      if(result.o == NounType::ERROR)
+      {
+        return result;
+      }
+
+      y = result;
+    }
+
+    return y;
+  }
+
+  return Word::make(UNSUPPORTED_OBJECT, NounType::ERROR);
+}
+
+Storage List::over_reals(Storage i, Storage f)
+{
+  if(std::holds_alternative<floats>(i.i))
+  {
+    floats iis = std::get<floats>(i.i);
+
+    if(iis.empty())
+    {
+      return i;
+    }
+
+    if(iis.size() == 1)
+    {
+      float result = iis[0];
+      return Float::make(result);
+    }
+
+    // else iis.size() > 1
+
+    Storage y = Float::make(iis[0]);
+
+    for(int index = 1; index < iis.size(); index++)
+    {
+      Storage z = Float::make(iis[index]);
+
+      Storage result = Noun::dispatchDyad(y, f, z);
+
+      if(result.o == NounType::ERROR)
+      {
+        return result;
+      }
+
+      y = result;
+    }
+
+    return y;
+  }
+
+  return Word::make(UNSUPPORTED_OBJECT, NounType::ERROR);
+}
+
+Storage List::over_mixed(Storage i, Storage f)
+{
+  if(std::holds_alternative<mixed>(i.i))
+  {
+    mixed iis = std::get<mixed>(i.i);
+
+    if(iis.empty())
+    {
+      return i;
+    }
+
+    if(iis.size() == 1)
+    {
+      return iis[0];
+    }
+
+    // else iis.size() > 1
+
+    Storage y = iis[0];
+
+    for(int index = 1; index < iis.size(); index++)
+    {
+      Storage z = iis[index];
+
+      Storage result = Noun::dispatchDyad(y, f, z);
+
+      if(result.o == NounType::ERROR)
+      {
+        return result;
+      }
+
+      y = result;
+    }
+
+    return y;
+  }
+
+  return Word::make(UNSUPPORTED_OBJECT, NounType::ERROR);
+}
+
+Storage List::scanOver_integers(Storage i, Storage f)
+{
+  if(std::holds_alternative<ints>(i.i))
+  {
+    ints iis = std::get<ints>(i.i);
+
+    if(iis.empty())
+    {
+      return i;
+    }
+
+    if(iis.size() == 1)
+    {
+      return i;
+    }
+
+    // else iis.size() > 1
+
+    Storage y = Word::make(iis[0]);
+    mixed results = mixed({y});
+
+    for(int index = 1; index < iis.size(); index++)
+    {
+      Storage z = Word::make(iis[index]);
+
+      Storage result = Noun::dispatchDyad(y, f, z);
+
+      if(result.o == NounType::ERROR)
+      {
+        return result;
+      }
+
+      y = result;
+
+      results.push_back(y);
+    }
+
+    return Noun::simplify(MixedArray::make(results));
+  }
+
+  return Word::make(UNSUPPORTED_OBJECT, NounType::ERROR);
+}
+
+Storage List::scanOver_reals(Storage i, Storage f)
+{
+  if(std::holds_alternative<floats>(i.i))
+  {
+    floats iis = std::get<floats>(i.i);
+
+    if(iis.empty())
+    {
+      return i;
+    }
+
+    if(iis.size() == 1)
+    {
+      return i;
+    }
+
+    // else iis.size() > 1
+
+    Storage y = Float::make(iis[0]);
+    mixed results = mixed({y});
+
+    for(int index = 1; index < iis.size(); index++)
+    {
+      Storage z = Float::make(iis[index]);
+
+      Storage result = Noun::dispatchDyad(y, f, z);
+
+      if(result.o == NounType::ERROR)
+      {
+        return result;
+      }
+
+      y = result;
+
+      results.push_back(y);
+    }
+
+    return Noun::simplify(MixedArray::make(results));
+  }
+
+  return Word::make(UNSUPPORTED_OBJECT, NounType::ERROR);
+}
+
+Storage List::scanOver_mixed(Storage i, Storage f)
+{
+  if(std::holds_alternative<mixed>(i.i))
+  {
+    mixed iis = std::get<mixed>(i.i);
+
+    if(iis.empty())
+    {
+      return i;
+    }
+
+    if(iis.size() == 1)
+    {
+      return i;
+    }
+
+    // else iis.size() > 1
+
+    Storage y = iis[0];
+    mixed results = mixed({y});
+
+    for(int index = 1; index < iis.size(); index++)
+    {
+      Storage z = iis[index];
+
+      Storage result = Noun::dispatchDyad(y, f, z);
+
+      if(result.o == NounType::ERROR)
+      {
+        return result;
+      }
+
+      y = result;
+
+      results.push_back(y);
+    }
+
+    return Noun::simplify(MixedArray::make(results));
+  }
+
+  return Word::make(UNSUPPORTED_OBJECT, NounType::ERROR);
+}
+
 maybe<Storage> List::from_bytes(bytes bs, int t) {
   switch (t) {
     case StorageType::WORD_ARRAY:
@@ -10088,15 +12915,15 @@ void List::to_conn(ReliableConnection conn, Storage i) {
 void Character::initialize() {
   // Monads
   Noun::registerMonad(StorageType::WORD, NounType::CHARACTER, Monads::atom, Noun::true1);
-  Noun::registerMonad(StorageType::WORD, NounType::CHARACTER, Monads::ichar, Storage::identity);
+  Noun::registerMonad(StorageType::WORD, NounType::CHARACTER, Monads::ichar, Noun::identity1);
   Noun::registerMonad(StorageType::WORD, NounType::CHARACTER, Monads::enclose, Character::enclose_impl);
-  Noun::registerMonad(StorageType::WORD, NounType::CHARACTER, Monads::first, Noun::identity);
-  Noun::registerMonad(StorageType::WORD, NounType::CHARACTER, Monads::reverse, Noun::identity);
+  Noun::registerMonad(StorageType::WORD, NounType::CHARACTER, Monads::first, Noun::identity1);
+  Noun::registerMonad(StorageType::WORD, NounType::CHARACTER, Monads::reverse, Noun::identity1);
   Noun::registerMonad(StorageType::WORD, NounType::CHARACTER, Monads::size, Character::size_impl);
 
   // Extension Monads
-  Noun::registerMonad(StorageType::WORD, NounType::CHARACTER, Monads::evaluate, Storage::identity);
-  Noun::registerMonad(StorageType::WORD_ARRAY, NounType::CHARACTER, Monads::evaluate, Storage::identity);
+  Noun::registerMonad(StorageType::WORD, NounType::CHARACTER, Monads::evaluate, Noun::identity1);
+  Noun::registerMonad(StorageType::WORD_ARRAY, NounType::CHARACTER, Monads::evaluate, Noun::identity1);
 
   // Dyads
   Noun::registerDyad(StorageType::WORD, NounType::CHARACTER, Dyads::join, StorageType::WORD, NounType::INTEGER, Character::join_scalar);
@@ -10114,6 +12941,15 @@ void Character::initialize() {
   Noun::registerDyad(StorageType::WORD, NounType::CHARACTER, Dyads::match, StorageType::MIXED_ARRAY, NounType::LIST, Noun::false2);
   Noun::registerDyad(StorageType::WORD, NounType::CHARACTER, Dyads::match, StorageType::WORD, NounType::CHARACTER, Character::match_impl);
   Noun::registerDyad(StorageType::WORD, NounType::CHARACTER, Dyads::match, StorageType::WORD_ARRAY, NounType::STRING, Noun::false2);
+
+  // Monadic Adverbs
+  Noun::registerMonadicAdverb(StorageType::WORD, NounType::CHARACTER, MonadicAdverbs::converge, Noun::converge_impl);  
+
+  Noun::registerMonadicAdverb(StorageType::WORD, NounType::CHARACTER, MonadicAdverbs::each, Noun::dispatchMonad);  
+
+  Noun::registerMonadicAdverb(StorageType::WORD, NounType::CHARACTER, MonadicAdverbs::scanConverging, Noun::scanConverging_impl);  
+
+  Noun::registerDyadicAdverb(StorageType::WORD, NounType::CHARACTER, DyadicAdverbs::iterate, StorageType::WORD, NounType::INTEGER, Noun::iterate_integer);  
 }
 
 Storage Character::enclose_impl(Storage i) {
@@ -10308,7 +13144,7 @@ void IotaString::initialize() {
   Noun::registerMonad(StorageType::WORD_ARRAY, NounType::STRING, Monads::size, IotaString::size_impl);
 
   // Extension Monads
-  Noun::registerMonad(StorageType::WORD_ARRAY, NounType::STRING, Monads::evaluate, Storage::identity);
+  Noun::registerMonad(StorageType::WORD_ARRAY, NounType::STRING, Monads::evaluate, Noun::identity1);
 
   // Dyads
   Noun::registerDyad(StorageType::WORD_ARRAY, NounType::STRING, Dyads::find, StorageType::WORD, NounType::CHARACTER, List::find_impl);
@@ -10332,6 +13168,30 @@ void IotaString::initialize() {
   Noun::registerDyad(StorageType::WORD_ARRAY, NounType::STRING, Dyads::match, StorageType::MIXED_ARRAY, NounType::LIST, Noun::false2);
   Noun::registerDyad(StorageType::WORD_ARRAY, NounType::STRING, Dyads::match, StorageType::WORD, NounType::CHARACTER, Noun::false2);
   Noun::registerDyad(StorageType::WORD_ARRAY, NounType::STRING, Dyads::match, StorageType::WORD_ARRAY, NounType::STRING, IotaString::match_impl);
+
+  Noun::registerDyad(StorageType::WORD_ARRAY, NounType::STRING, Dyads::split, StorageType::WORD, NounType::INTEGER, IotaString::split_integer);
+  Noun::registerDyad(StorageType::WORD_ARRAY, NounType::STRING, Dyads::split, StorageType::WORD_ARRAY, NounType::LIST, IotaString::split_integers);
+
+  Noun::registerDyad(StorageType::WORD_ARRAY, NounType::STRING, Dyads::take, StorageType::WORD, NounType::INTEGER, IotaString::take_integer);  
+
+  // Monadic Adverbs
+  Noun::registerMonadicAdverb(StorageType::WORD_ARRAY, NounType::STRING, MonadicAdverbs::converge, Noun::converge_impl);  
+
+  Noun::registerMonadicAdverb(StorageType::WORD_ARRAY, NounType::STRING, MonadicAdverbs::each, IotaString::each_impl);  
+
+  Noun::registerMonadicAdverb(StorageType::WORD_ARRAY, NounType::STRING, MonadicAdverbs::scanConverging, Noun::scanConverging_impl);  
+
+  Noun::registerDyadicAdverb(StorageType::WORD_ARRAY, NounType::STRING, DyadicAdverbs::iterate, StorageType::WORD, NounType::INTEGER, Noun::iterate_integer);  
+}
+
+Storage IotaString::make(ints i)
+{
+  return WordArray::make(i, NounType::STRING);
+}
+
+Storage IotaString::makeEmpty()
+{
+  return WordArray::make(ints(), NounType::STRING);
 }
 
 Storage IotaString::atom_impl(Storage i)
@@ -10600,6 +13460,175 @@ Storage IotaString::match_impl(Storage i, Storage x)
   return Word::make(UNSUPPORTED_OBJECT, NounType::ERROR);
 }
 
+Storage IotaString::split_integer(Storage i, Storage x)
+{
+  if(std::holds_alternative<int>(x.i))
+  {
+    int xi = std::get<int>(x.i);
+
+    if(std::holds_alternative<ints>(i.i))
+    {
+      ints iis = std::get<ints>(i.i);
+
+      if(xi > 0)
+      {
+        if(xi >= iis.size())
+        {
+          mixed results = mixed();
+          results.push_back(i);
+
+          return MixedArray::make(results);
+        }
+
+        mixed results = mixed();
+
+        ints result = ints();
+        for(int index = 0; index < iis.size(); index++)
+        {
+          result.push_back(iis[index]);
+
+          if(result.size() == xi)
+          {
+            results.push_back(IotaString::make(result));
+            result = ints();
+          }
+        }
+
+        if(result.size() > 0)
+        {
+          results.push_back(IotaString::make(result));
+        }
+
+        return MixedArray::make(results);
+      }
+    }
+  }
+
+  return Word::make(UNSUPPORTED_OBJECT, NounType::ERROR);
+}
+
+Storage IotaString::split_integers(Storage i, Storage x)
+{
+  if(std::holds_alternative<ints>(x.i))
+  {
+    ints xis = std::get<ints>(x.i);
+
+    if(std::holds_alternative<ints>(i.i))
+    {
+      ints iis = std::get<ints>(i.i);
+
+      mixed results = mixed();
+
+      int count = 0;
+      int index = 0;
+      while(count < iis.size())
+      {
+        int y = xis[index++ % xis.size()]; // cycle
+        
+        if(count + y > iis.size())
+        {
+          ints result(iis.begin(), iis.end());
+          results.push_back(IotaString::make(result));
+          break;
+        }
+        else
+        {
+          ints result(iis.begin() + count, iis.begin() + count + y);
+          results.push_back(IotaString::make(result));
+        }
+
+        count = count + y;
+      }
+
+      if(count < iis.size())
+      {
+        ints result(iis.begin() + count, iis.end());
+        results.push_back(IotaString::make(result));
+      }
+
+      return MixedArray::make(results);
+    }
+  }
+
+  return Word::make(UNSUPPORTED_OBJECT, NounType::ERROR);
+}
+
+Storage IotaString::take_integer(Storage i, Storage x)
+{
+  if(std::holds_alternative<int>(x.i))
+  {
+    int xi = std::get<int>(x.i);
+
+    if(std::holds_alternative<ints>(i.i))
+    {
+      ints iis = std::get<ints>(i.i);
+
+      if(iis.empty())
+      {
+        return i;
+      }
+
+      if(xi == 0)
+      {
+        return IotaString::makeEmpty();
+      }
+
+      if(xi > 0)
+      {
+        ints results = ints();
+        for(int index = 0; index < xi; index++)
+        {
+          results.push_back(iis[index % iis.size()]); // cycle through iis
+        }
+
+        return IotaString::make(results);
+      }
+      else if(xi < 0)
+      {
+        xi = -xi;
+        int start = iis.size() - (xi % iis.size());
+
+        ints results = ints();
+        for(int offset = 0; offset < xi; offset++)
+        {
+          int index = (start + offset) % iis.size();
+          results.push_back(iis[index]);
+        }
+
+        return IotaString::make(results);
+      }
+    }
+  }
+
+  return Word::make(UNSUPPORTED_OBJECT, NounType::ERROR);
+}
+
+// Monadic Adverbs
+Storage IotaString::each_impl(Storage i, Storage f)
+{
+  if(std::holds_alternative<ints>(i.i))
+  {
+    ints iis = std::get<ints>(i.i);
+
+    mixed results = mixed();
+    for(int y : iis)
+    {
+      Storage result = Noun::dispatchMonad(i, Word::make(y));
+
+      if(result.o == NounType::ERROR)
+      {
+        return result;
+      }
+
+      results.push_back(result);
+    }
+
+    return Noun::simplify(MixedArray::make(results));
+  }
+
+  return Word::make(UNSUPPORTED_OBJECT, NounType::ERROR);
+}
+
 // Serialization
 maybe<Storage> IotaString::from_bytes(bytes bs, int t) {
   switch (t) {
@@ -10672,6 +13701,66 @@ void Expression::initialize() {
 }
 
 Storage Expression::truth(Storage i) {
+  return truth(evaluate(i));
+}
+
+// Conditional
+void Conditional::initialize()
+{
+  // Monads
+  Noun::registerMonad(StorageType::MIXED_ARRAY, NounType::CONDITIONAL, Monads::evaluate, Noun::evaluate_expression);
+  Noun::registerMonad(StorageType::MIXED_ARRAY, NounType::CONDITIONAL, Monads::truth, Expression::truth);
+
+  // Extension Monads
+  // Noun::registerMonad(StorageType::MIXED_ARRAY, NounType::CONDITIONAL, Monads::erase, MixedArray::erase_impl);
+
+  // Extension Dyads
+  // Noun::registerDyad(StorageType::MIXED_ARRAY, NounType::CONDITIONAL, Monads::retype, StorageType::WORD, NounType::TYPE, MixedArray::retype_impl);  
+
+  // Dyads
+  // Noun::registerDyad(StorageType::MIXED_ARRAY, NounType::CONDITIONAL, Monads::applyMonad, StorageType::WORD, NounType::BUILTIN_MONAD, Noun::applyMonad_expression);
+  // Noun::registerDyad(StorageType::MIXED_ARRAY, NounType::CONDITIONAL, Monads::applyMonad, StorageType::MIXED_ARRAY, NounType::USER_MONAD, Noun::applyDyad_expression);
+
+  // Triads
+  // Noun::registerTriad(StorageType::MIXED_ARRAY, NounType::CONDITIONAL, Monads::applyDyad, StorageType::WORD, NounType::BUILTIN_DYAD, Noun::applyMonad_expression);
+  // Noun::registerTriad(StorageType::MIXED_ARRAY, NounType::CONDITIONAL, Monads::applyDyad, StorageType::MIXED_ARRAY, NounType::USER_DYAD, Noun::applyDyad_expression);
+}
+
+Storage Conditional::make(mixed i)
+{
+  return MixedArray::make(i, NounType::CONDITIONAL);
+}
+
+Storage Conditional::evaluate_impl(Storage e)
+{
+  if(std::holds_alternative<mixed>(e.i))
+  {
+    mixed mis = std::get<mixed>(e.i);
+
+    if(mis.size() != 3)
+    {
+      return Word::make(SHAPE_MISMATCH, NounType::ERROR);
+    }
+
+    Storage a = mis[0];
+    Storage b = mis[1];
+    Storage c = mis[2];
+
+    if(a.truth())
+    {
+      return evaluate(b);
+    }
+    else
+    {
+      return evaluate(c);
+    }
+  }
+
+  return Word::make(UNSUPPORTED_OBJECT, NounType::ERROR);
+}
+
+Storage Conditional::truth_impl(Storage i)
+{
   return truth(evaluate(i));
 }
 
