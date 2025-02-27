@@ -293,12 +293,12 @@ Storage scanOverNeutral(Storage i, Storage f, Storage x) // a f\b
   return Noun::dispatchDyadicAdverb(i, Word::make(DyadicAdverbs::scanOverNeutral, NounType::MONADIC_ADVERB), f, x);
 }
 
-Storage whileTrue(Storage i, Storage f, Storage x) // a f\b 
+Storage whileOne(Storage i, Storage f, Storage x) // a f\b 
 {
   return Noun::dispatchDyadicAdverb(i, Word::make(DyadicAdverbs::whileOne, NounType::MONADIC_ADVERB), f, x);
 }
 
-Storage scanWhileTrue(Storage i, Storage f, Storage x) // a f\b 
+Storage scanwhileOne(Storage i, Storage f, Storage x) // a f\b 
 {
   return Noun::dispatchDyadicAdverb(i, Word::make(DyadicAdverbs::scanWhileOne, NounType::MONADIC_ADVERB), f, x);
 }
@@ -488,11 +488,14 @@ Storage Noun::identity1(Storage i)
 }
 
 // Extension Monads - Implementations
-Storage Noun::evaluate_expression(Storage e) {
-  if (std::holds_alternative<mixed>(e.i)) {
+Storage Noun::evaluate_expression(Storage e)
+{
+  if (std::holds_alternative<mixed>(e.i))
+  {
     mixed items = std::get<mixed>(e.i);
 
-    if (items.empty()) {
+    if (items.empty())
+    {
       return e;
     }
 
@@ -547,7 +550,50 @@ Storage Noun::evaluate_expression(Storage e) {
         }
       }
 
-        // FIXME - add cases for BUILTIN_DYAD, BUILTIN_TRIAD, MONADIC_ADVERB, and DYADIC_ADVERB
+      case NounType::MONADIC_ADVERB:
+      {
+        Storage g = items[2];
+        rest = mixed(items.begin() + 3, items.end());
+
+        Storage result = Noun::dispatchMonadicAdverb(i, f, g);
+        if(rest.empty())
+        {
+          return result;
+        }
+        else
+        {
+          rest.insert(rest.begin(), result);
+
+          Storage next_e = MixedArray::make(rest, NounType::EXPRESSION);
+          result = evaluate_expression(next_e);
+
+          return result;
+        }
+      }
+
+      case NounType::DYADIC_ADVERB:
+      {
+        Storage g = items[2];
+        Storage x = items[3];
+        rest = mixed(items.begin() + 4, items.end());
+
+        Storage result = Noun::dispatchDyadicAdverb(i, f, g, x);
+        if(rest.empty())
+        {
+          return result;
+        }
+        else
+        {
+          rest.insert(rest.begin(), result);
+
+          Storage next_e = MixedArray::make(rest, NounType::EXPRESSION);
+          result = evaluate_expression(next_e);
+
+          return result;
+        }
+      }
+
+      // FIXME - add case for BUILTIN_TRIAD
 
       default:
         return Word::make(UNSUPPORTED_OBJECT, NounType::ERROR);
@@ -864,11 +910,13 @@ Storage Noun::scanConverging_impl(Storage i, Storage f)
     Storage equivalence = match(next, previous);
     previous = next;
 
-    results.push_back(next);
-
     if(equivalence.truth())
     {
       return Noun::simplify(MixedArray::make(results));
+    }
+    else
+    {
+      results.push_back(next);
     }
   }
 
@@ -888,7 +936,7 @@ Storage Noun::each2_impl(Storage i, Storage f, Storage x)
     return x;
   }
 
-  if(isAtom(i) && isAtom(x))
+  if(isAtom(i) || isAtom(x))
   {
     return dispatchDyad(i, f, x);
   }
@@ -899,7 +947,7 @@ Storage Noun::each2_impl(Storage i, Storage f, Storage x)
   int max = min(is, xs);
 
   mixed results = mixed();
-  for(int offset = 0; offset < max; offset++)
+  for(int offset = 1; offset <= max; offset++)
   {
     Storage y = index(i, Word::make(offset));
     Storage z = index(x, Word::make(offset));
@@ -931,7 +979,7 @@ Storage Noun::eachLeft_impl(Storage i, Storage f, Storage x)
   int is = getSize(i);
 
   mixed results = mixed();
-  for(int offset = 0; offset < is; offset++)
+  for(int offset = 1; offset <= is; offset++)
   {
     Storage y = index(i, Word::make(offset));
 
@@ -963,7 +1011,7 @@ Storage Noun::eachRight_impl(Storage i, Storage f, Storage x)
   int is = getSize(i);
 
   mixed results = mixed();
-  for(int offset = 0; offset < is; offset++)
+  for(int offset = 1; offset <= is; offset++)
   {
     Storage y = index(i, Word::make(offset));
 
@@ -1062,13 +1110,13 @@ Storage Noun::scanOverNeutral_impl(Storage i, Storage f, Storage x)
 
   if(isAtom(i) && isAtom(x))
   {
-    return dispatchDyad(i, f, x);
+    return prepend(i, dispatchDyad(i, f, x));
   }
 
   return scanOver(prepend(x, i), f);
 }
 
-Storage Noun::scanWhileTrue_impl(Storage i, Storage f, Storage g)
+Storage Noun::scanWhileOne_impl(Storage i, Storage f, Storage g)
 {
   mixed results = mixed();
 
@@ -1101,7 +1149,7 @@ Storage Noun::scanWhileTrue_impl(Storage i, Storage f, Storage g)
   return Noun::simplify(MixedArray::make(results));
 }
 
-Storage Noun::whileTrue_impl(Storage i, Storage f, Storage g)
+Storage Noun::whileOne_impl(Storage i, Storage f, Storage g)
 {
   Storage current = i;
   Storage t = Noun::dispatchMonad(current, f);
@@ -1516,7 +1564,47 @@ void Integer::initialize() {
   Noun::registerDyadicAdverb(StorageType::WORD, NounType::INTEGER, DyadicAdverbs::each2, StorageType::WORD, NounType::CHARACTER, Noun::dispatchDyad);
   Noun::registerDyadicAdverb(StorageType::WORD, NounType::INTEGER, DyadicAdverbs::each2, StorageType::WORD_ARRAY, NounType::STRING, Noun::dispatchDyad);
 
+  Noun::registerDyadicAdverb(StorageType::WORD, NounType::INTEGER, DyadicAdverbs::eachLeft, StorageType::WORD, NounType::INTEGER, Noun::dispatchDyad);
+  Noun::registerDyadicAdverb(StorageType::WORD, NounType::INTEGER, DyadicAdverbs::eachLeft, StorageType::FLOAT, NounType::REAL, Noun::dispatchDyad);
+  Noun::registerDyadicAdverb(StorageType::WORD, NounType::INTEGER, DyadicAdverbs::eachLeft, StorageType::WORD_ARRAY, NounType::LIST, Noun::dispatchDyad);
+  Noun::registerDyadicAdverb(StorageType::WORD, NounType::INTEGER, DyadicAdverbs::eachLeft, StorageType::FLOAT_ARRAY, NounType::LIST, Noun::dispatchDyad);
+  Noun::registerDyadicAdverb(StorageType::WORD, NounType::INTEGER, DyadicAdverbs::eachLeft, StorageType::MIXED_ARRAY, NounType::LIST, Noun::dispatchDyad);
+  Noun::registerDyadicAdverb(StorageType::WORD, NounType::INTEGER, DyadicAdverbs::eachLeft, StorageType::WORD, NounType::CHARACTER, Noun::dispatchDyad);
+  Noun::registerDyadicAdverb(StorageType::WORD, NounType::INTEGER, DyadicAdverbs::eachLeft, StorageType::WORD_ARRAY, NounType::STRING, Noun::dispatchDyad);
+
+  Noun::registerDyadicAdverb(StorageType::WORD, NounType::INTEGER, DyadicAdverbs::overNeutral, StorageType::WORD, NounType::INTEGER, Noun::dispatchDyad);
+  Noun::registerDyadicAdverb(StorageType::WORD, NounType::INTEGER, DyadicAdverbs::overNeutral, StorageType::FLOAT, NounType::REAL, Noun::dispatchDyad);
+  Noun::registerDyadicAdverb(StorageType::WORD, NounType::INTEGER, DyadicAdverbs::overNeutral, StorageType::WORD_ARRAY, NounType::LIST, Noun::dispatchDyad);
+  Noun::registerDyadicAdverb(StorageType::WORD, NounType::INTEGER, DyadicAdverbs::overNeutral, StorageType::FLOAT_ARRAY, NounType::LIST, Noun::dispatchDyad);
+  Noun::registerDyadicAdverb(StorageType::WORD, NounType::INTEGER, DyadicAdverbs::overNeutral, StorageType::MIXED_ARRAY, NounType::LIST, Noun::dispatchDyad);
+  Noun::registerDyadicAdverb(StorageType::WORD, NounType::INTEGER, DyadicAdverbs::overNeutral, StorageType::WORD, NounType::CHARACTER, Noun::dispatchDyad);
+  Noun::registerDyadicAdverb(StorageType::WORD, NounType::INTEGER, DyadicAdverbs::overNeutral, StorageType::WORD_ARRAY, NounType::STRING, Noun::dispatchDyad);
+
+  Noun::registerDyadicAdverb(StorageType::WORD, NounType::INTEGER, DyadicAdverbs::eachRight, StorageType::WORD, NounType::INTEGER, Noun::dispatchDyad);
+  Noun::registerDyadicAdverb(StorageType::WORD, NounType::INTEGER, DyadicAdverbs::eachRight, StorageType::FLOAT, NounType::REAL, Noun::dispatchDyad);
+  Noun::registerDyadicAdverb(StorageType::WORD, NounType::INTEGER, DyadicAdverbs::eachRight, StorageType::WORD_ARRAY, NounType::LIST, Noun::dispatchDyad);
+  Noun::registerDyadicAdverb(StorageType::WORD, NounType::INTEGER, DyadicAdverbs::eachRight, StorageType::FLOAT_ARRAY, NounType::LIST, Noun::dispatchDyad);
+  Noun::registerDyadicAdverb(StorageType::WORD, NounType::INTEGER, DyadicAdverbs::eachRight, StorageType::MIXED_ARRAY, NounType::LIST, Noun::dispatchDyad);
+  Noun::registerDyadicAdverb(StorageType::WORD, NounType::INTEGER, DyadicAdverbs::eachRight, StorageType::WORD, NounType::CHARACTER, Noun::dispatchDyad);
+  Noun::registerDyadicAdverb(StorageType::WORD, NounType::INTEGER, DyadicAdverbs::eachRight, StorageType::WORD_ARRAY, NounType::STRING, Noun::dispatchDyad);
+
   Noun::registerDyadicAdverb(StorageType::WORD, NounType::INTEGER, DyadicAdverbs::iterate, StorageType::WORD, NounType::INTEGER, Noun::iterate_integer);
+
+  Noun::registerDyadicAdverb(StorageType::WORD, NounType::INTEGER, DyadicAdverbs::scanIterating, StorageType::WORD, NounType::INTEGER, Noun::scanIterating_integer);
+
+  Noun::registerDyadicAdverb(StorageType::WORD, NounType::INTEGER, DyadicAdverbs::scanOverNeutral, StorageType::WORD, NounType::INTEGER, Noun::scanOverNeutral_impl);
+  Noun::registerDyadicAdverb(StorageType::WORD, NounType::INTEGER, DyadicAdverbs::scanOverNeutral, StorageType::FLOAT, NounType::REAL, Noun::scanOverNeutral_impl);
+  Noun::registerDyadicAdverb(StorageType::WORD, NounType::INTEGER, DyadicAdverbs::scanOverNeutral, StorageType::WORD_ARRAY, NounType::LIST, Noun::scanOverNeutral_impl);
+  Noun::registerDyadicAdverb(StorageType::WORD, NounType::INTEGER, DyadicAdverbs::scanOverNeutral, StorageType::FLOAT_ARRAY, NounType::LIST, Noun::scanOverNeutral_impl);
+  Noun::registerDyadicAdverb(StorageType::WORD, NounType::INTEGER, DyadicAdverbs::scanOverNeutral, StorageType::MIXED_ARRAY, NounType::LIST, Noun::scanOverNeutral_impl);
+  Noun::registerDyadicAdverb(StorageType::WORD, NounType::INTEGER, DyadicAdverbs::scanOverNeutral, StorageType::WORD, NounType::CHARACTER, Noun::scanOverNeutral_impl);
+  Noun::registerDyadicAdverb(StorageType::WORD, NounType::INTEGER, DyadicAdverbs::scanOverNeutral, StorageType::WORD_ARRAY, NounType::STRING, Noun::scanOverNeutral_impl);
+
+  Noun::registerDyadicAdverb(StorageType::WORD, NounType::INTEGER, DyadicAdverbs::scanWhileOne, StorageType::WORD, NounType::BUILTIN_MONAD, Noun::scanWhileOne_impl);
+  Noun::registerDyadicAdverb(StorageType::WORD, NounType::INTEGER, DyadicAdverbs::scanWhileOne, StorageType::WORD, NounType::USER_MONAD, Noun::scanWhileOne_impl);
+
+  Noun::registerDyadicAdverb(StorageType::WORD, NounType::INTEGER, DyadicAdverbs::whileOne, StorageType::WORD, NounType::BUILTIN_MONAD, Noun::whileOne_impl);
+  Noun::registerDyadicAdverb(StorageType::WORD, NounType::INTEGER, DyadicAdverbs::whileOne, StorageType::WORD, NounType::USER_MONAD, Noun::whileOne_impl);
 }
 
 Storage Integer::make(int i)
@@ -3291,7 +3379,62 @@ void Real::initialize() {
   Noun::registerDyadicAdverb(StorageType::FLOAT, NounType::REAL, DyadicAdverbs::each2, StorageType::WORD, NounType::CHARACTER, Noun::each2_impl);
   Noun::registerDyadicAdverb(StorageType::FLOAT, NounType::REAL, DyadicAdverbs::each2, StorageType::WORD_ARRAY, NounType::STRING, Noun::each2_impl);
 
+  Noun::registerDyadicAdverb(StorageType::FLOAT, NounType::REAL, DyadicAdverbs::eachLeft, StorageType::WORD, NounType::INTEGER, Noun::eachLeft_impl);
+  Noun::registerDyadicAdverb(StorageType::FLOAT, NounType::REAL, DyadicAdverbs::eachLeft, StorageType::FLOAT, NounType::REAL, Noun::eachLeft_impl);
+  Noun::registerDyadicAdverb(StorageType::FLOAT, NounType::REAL, DyadicAdverbs::eachLeft, StorageType::WORD_ARRAY, NounType::LIST, Noun::eachLeft_impl);
+  Noun::registerDyadicAdverb(StorageType::FLOAT, NounType::REAL, DyadicAdverbs::eachLeft, StorageType::FLOAT_ARRAY, NounType::LIST, Noun::eachLeft_impl);
+  Noun::registerDyadicAdverb(StorageType::FLOAT, NounType::REAL, DyadicAdverbs::eachLeft, StorageType::MIXED_ARRAY, NounType::LIST, Noun::eachLeft_impl);
+  Noun::registerDyadicAdverb(StorageType::FLOAT, NounType::REAL, DyadicAdverbs::eachLeft, StorageType::WORD, NounType::CHARACTER, Noun::eachLeft_impl);
+  Noun::registerDyadicAdverb(StorageType::FLOAT, NounType::REAL, DyadicAdverbs::eachLeft, StorageType::WORD_ARRAY, NounType::STRING, Noun::eachLeft_impl);
+
+  Noun::registerDyadicAdverb(StorageType::FLOAT, NounType::REAL, DyadicAdverbs::overNeutral, StorageType::WORD, NounType::INTEGER, Noun::overNeutral_impl);
+  Noun::registerDyadicAdverb(StorageType::FLOAT, NounType::REAL, DyadicAdverbs::overNeutral, StorageType::FLOAT, NounType::REAL, Noun::overNeutral_impl);
+  Noun::registerDyadicAdverb(StorageType::FLOAT, NounType::REAL, DyadicAdverbs::overNeutral, StorageType::WORD_ARRAY, NounType::LIST, Noun::overNeutral_impl);
+  Noun::registerDyadicAdverb(StorageType::FLOAT, NounType::REAL, DyadicAdverbs::overNeutral, StorageType::FLOAT_ARRAY, NounType::LIST, Noun::overNeutral_impl);
+  Noun::registerDyadicAdverb(StorageType::FLOAT, NounType::REAL, DyadicAdverbs::overNeutral, StorageType::MIXED_ARRAY, NounType::LIST, Noun::overNeutral_impl);
+  Noun::registerDyadicAdverb(StorageType::FLOAT, NounType::REAL, DyadicAdverbs::overNeutral, StorageType::WORD, NounType::CHARACTER, Noun::overNeutral_impl);
+  Noun::registerDyadicAdverb(StorageType::FLOAT, NounType::REAL, DyadicAdverbs::overNeutral, StorageType::WORD_ARRAY, NounType::STRING, Noun::overNeutral_impl);
+
+  Noun::registerDyadicAdverb(StorageType::FLOAT, NounType::REAL, DyadicAdverbs::eachRight, StorageType::WORD, NounType::INTEGER, Noun::eachRight_impl);
+  Noun::registerDyadicAdverb(StorageType::FLOAT, NounType::REAL, DyadicAdverbs::eachRight, StorageType::FLOAT, NounType::REAL, Noun::eachRight_impl);
+  Noun::registerDyadicAdverb(StorageType::FLOAT, NounType::REAL, DyadicAdverbs::eachRight, StorageType::WORD_ARRAY, NounType::LIST, Noun::eachRight_impl);
+  Noun::registerDyadicAdverb(StorageType::FLOAT, NounType::REAL, DyadicAdverbs::eachRight, StorageType::FLOAT_ARRAY, NounType::LIST, Noun::eachRight_impl);
+  Noun::registerDyadicAdverb(StorageType::FLOAT, NounType::REAL, DyadicAdverbs::eachRight, StorageType::MIXED_ARRAY, NounType::LIST, Noun::eachRight_impl);
+  Noun::registerDyadicAdverb(StorageType::FLOAT, NounType::REAL, DyadicAdverbs::eachRight, StorageType::WORD, NounType::CHARACTER, Noun::eachRight_impl);
+  Noun::registerDyadicAdverb(StorageType::FLOAT, NounType::REAL, DyadicAdverbs::eachRight, StorageType::WORD_ARRAY, NounType::STRING, Noun::eachRight_impl);
+
   Noun::registerDyadicAdverb(StorageType::FLOAT, NounType::REAL, DyadicAdverbs::iterate, StorageType::WORD, NounType::INTEGER, Noun::iterate_integer);
+
+  Noun::registerDyadicAdverb(StorageType::FLOAT, NounType::REAL, DyadicAdverbs::scanIterating, StorageType::WORD, NounType::INTEGER, Noun::scanIterating_integer);
+
+  Noun::registerDyadicAdverb(StorageType::FLOAT, NounType::REAL, DyadicAdverbs::scanOverNeutral, StorageType::WORD, NounType::INTEGER, Noun::scanOverNeutral_impl);
+  Noun::registerDyadicAdverb(StorageType::FLOAT, NounType::REAL, DyadicAdverbs::scanOverNeutral, StorageType::FLOAT, NounType::REAL, Noun::scanOverNeutral_impl);
+  Noun::registerDyadicAdverb(StorageType::FLOAT, NounType::REAL, DyadicAdverbs::scanOverNeutral, StorageType::WORD_ARRAY, NounType::LIST, Noun::scanOverNeutral_impl);
+  Noun::registerDyadicAdverb(StorageType::FLOAT, NounType::REAL, DyadicAdverbs::scanOverNeutral, StorageType::FLOAT_ARRAY, NounType::LIST, Noun::scanOverNeutral_impl);
+  Noun::registerDyadicAdverb(StorageType::FLOAT, NounType::REAL, DyadicAdverbs::scanOverNeutral, StorageType::MIXED_ARRAY, NounType::LIST, Noun::scanOverNeutral_impl);
+  Noun::registerDyadicAdverb(StorageType::FLOAT, NounType::REAL, DyadicAdverbs::scanOverNeutral, StorageType::WORD, NounType::CHARACTER, Noun::scanOverNeutral_impl);
+  Noun::registerDyadicAdverb(StorageType::FLOAT, NounType::REAL, DyadicAdverbs::scanOverNeutral, StorageType::WORD_ARRAY, NounType::STRING, Noun::scanOverNeutral_impl);
+
+  Noun::registerDyadicAdverb(StorageType::FLOAT, NounType::REAL, DyadicAdverbs::scanWhileOne, StorageType::WORD, NounType::BUILTIN_MONAD, Noun::scanWhileOne_impl);
+  Noun::registerDyadicAdverb(StorageType::FLOAT, NounType::REAL, DyadicAdverbs::scanWhileOne, StorageType::WORD, NounType::USER_MONAD, Noun::scanWhileOne_impl);
+
+  Noun::registerDyadicAdverb(StorageType::FLOAT, NounType::REAL, DyadicAdverbs::whileOne, StorageType::WORD, NounType::BUILTIN_MONAD, Noun::whileOne_impl);
+  Noun::registerDyadicAdverb(StorageType::FLOAT, NounType::REAL, DyadicAdverbs::whileOne, StorageType::WORD, NounType::USER_MONAD, Noun::whileOne_impl);
+}
+
+Storage Real::make(float i)
+{
+  return Float::make(i, NounType::REAL);
+}
+
+Storage Real::zero()
+{
+  return Real::make(0.0);
+}
+
+Storage Real::one()
+{
+  return Real::make(1.0);
 }
 
 Storage Real::enclose_impl(Storage i)
@@ -4670,7 +4813,47 @@ void List::initialize() {
   Noun::registerDyadicAdverb(StorageType::WORD_ARRAY, NounType::LIST, DyadicAdverbs::each2, StorageType::WORD, NounType::CHARACTER, Noun::each2_impl);
   Noun::registerDyadicAdverb(StorageType::WORD_ARRAY, NounType::LIST, DyadicAdverbs::each2, StorageType::WORD_ARRAY, NounType::STRING, Noun::each2_impl);
 
+  Noun::registerDyadicAdverb(StorageType::WORD_ARRAY, NounType::LIST, DyadicAdverbs::eachLeft, StorageType::WORD, NounType::INTEGER, Noun::eachLeft_impl);
+  Noun::registerDyadicAdverb(StorageType::WORD_ARRAY, NounType::LIST, DyadicAdverbs::eachLeft, StorageType::FLOAT, NounType::REAL, Noun::eachLeft_impl);
+  Noun::registerDyadicAdverb(StorageType::WORD_ARRAY, NounType::LIST, DyadicAdverbs::eachLeft, StorageType::WORD_ARRAY, NounType::LIST, Noun::eachLeft_impl);
+  Noun::registerDyadicAdverb(StorageType::WORD_ARRAY, NounType::LIST, DyadicAdverbs::eachLeft, StorageType::FLOAT_ARRAY, NounType::LIST, Noun::eachLeft_impl);
+  Noun::registerDyadicAdverb(StorageType::WORD_ARRAY, NounType::LIST, DyadicAdverbs::eachLeft, StorageType::MIXED_ARRAY, NounType::LIST, Noun::eachLeft_impl);
+  Noun::registerDyadicAdverb(StorageType::WORD_ARRAY, NounType::LIST, DyadicAdverbs::eachLeft, StorageType::WORD, NounType::CHARACTER, Noun::eachLeft_impl);
+  Noun::registerDyadicAdverb(StorageType::WORD_ARRAY, NounType::LIST, DyadicAdverbs::eachLeft, StorageType::WORD_ARRAY, NounType::STRING, Noun::eachLeft_impl);
+
+  Noun::registerDyadicAdverb(StorageType::WORD_ARRAY, NounType::LIST, DyadicAdverbs::overNeutral, StorageType::WORD, NounType::INTEGER, Noun::overNeutral_impl);
+  Noun::registerDyadicAdverb(StorageType::WORD_ARRAY, NounType::LIST, DyadicAdverbs::overNeutral, StorageType::FLOAT, NounType::REAL, Noun::overNeutral_impl);
+  Noun::registerDyadicAdverb(StorageType::WORD_ARRAY, NounType::LIST, DyadicAdverbs::overNeutral, StorageType::WORD_ARRAY, NounType::LIST, Noun::overNeutral_impl);
+  Noun::registerDyadicAdverb(StorageType::WORD_ARRAY, NounType::LIST, DyadicAdverbs::overNeutral, StorageType::FLOAT_ARRAY, NounType::LIST, Noun::overNeutral_impl);
+  Noun::registerDyadicAdverb(StorageType::WORD_ARRAY, NounType::LIST, DyadicAdverbs::overNeutral, StorageType::MIXED_ARRAY, NounType::LIST, Noun::overNeutral_impl);
+  Noun::registerDyadicAdverb(StorageType::WORD_ARRAY, NounType::LIST, DyadicAdverbs::overNeutral, StorageType::WORD, NounType::CHARACTER, Noun::overNeutral_impl);
+  Noun::registerDyadicAdverb(StorageType::WORD_ARRAY, NounType::LIST, DyadicAdverbs::overNeutral, StorageType::WORD_ARRAY, NounType::STRING, Noun::overNeutral_impl);
+
+  Noun::registerDyadicAdverb(StorageType::WORD_ARRAY, NounType::LIST, DyadicAdverbs::eachRight, StorageType::WORD, NounType::INTEGER, Noun::eachRight_impl);
+  Noun::registerDyadicAdverb(StorageType::WORD_ARRAY, NounType::LIST, DyadicAdverbs::eachRight, StorageType::FLOAT, NounType::REAL, Noun::eachRight_impl);
+  Noun::registerDyadicAdverb(StorageType::WORD_ARRAY, NounType::LIST, DyadicAdverbs::eachRight, StorageType::WORD_ARRAY, NounType::LIST, Noun::eachRight_impl);
+  Noun::registerDyadicAdverb(StorageType::WORD_ARRAY, NounType::LIST, DyadicAdverbs::eachRight, StorageType::FLOAT_ARRAY, NounType::LIST, Noun::eachRight_impl);
+  Noun::registerDyadicAdverb(StorageType::WORD_ARRAY, NounType::LIST, DyadicAdverbs::eachRight, StorageType::MIXED_ARRAY, NounType::LIST, Noun::eachRight_impl);
+  Noun::registerDyadicAdverb(StorageType::WORD_ARRAY, NounType::LIST, DyadicAdverbs::eachRight, StorageType::WORD, NounType::CHARACTER, Noun::eachRight_impl);
+  Noun::registerDyadicAdverb(StorageType::WORD_ARRAY, NounType::LIST, DyadicAdverbs::eachRight, StorageType::WORD_ARRAY, NounType::STRING, Noun::eachRight_impl);
+
   Noun::registerDyadicAdverb(StorageType::WORD_ARRAY, NounType::LIST, DyadicAdverbs::iterate, StorageType::WORD, NounType::INTEGER, Noun::iterate_integer);  
+
+  Noun::registerDyadicAdverb(StorageType::WORD_ARRAY, NounType::LIST, DyadicAdverbs::scanIterating, StorageType::WORD, NounType::INTEGER, Noun::scanIterating_integer);  
+
+  Noun::registerDyadicAdverb(StorageType::WORD_ARRAY, NounType::LIST, DyadicAdverbs::scanOverNeutral, StorageType::WORD, NounType::INTEGER, Noun::scanOverNeutral_impl);
+  Noun::registerDyadicAdverb(StorageType::WORD_ARRAY, NounType::LIST, DyadicAdverbs::scanOverNeutral, StorageType::FLOAT, NounType::REAL, Noun::scanOverNeutral_impl);
+  Noun::registerDyadicAdverb(StorageType::WORD_ARRAY, NounType::LIST, DyadicAdverbs::scanOverNeutral, StorageType::WORD_ARRAY, NounType::LIST, Noun::scanOverNeutral_impl);
+  Noun::registerDyadicAdverb(StorageType::WORD_ARRAY, NounType::LIST, DyadicAdverbs::scanOverNeutral, StorageType::FLOAT_ARRAY, NounType::LIST, Noun::scanOverNeutral_impl);
+  Noun::registerDyadicAdverb(StorageType::WORD_ARRAY, NounType::LIST, DyadicAdverbs::scanOverNeutral, StorageType::MIXED_ARRAY, NounType::LIST, Noun::scanOverNeutral_impl);
+  Noun::registerDyadicAdverb(StorageType::WORD_ARRAY, NounType::LIST, DyadicAdverbs::scanOverNeutral, StorageType::WORD, NounType::CHARACTER, Noun::scanOverNeutral_impl);
+  Noun::registerDyadicAdverb(StorageType::WORD_ARRAY, NounType::LIST, DyadicAdverbs::scanOverNeutral, StorageType::WORD_ARRAY, NounType::STRING, Noun::scanOverNeutral_impl);
+
+  Noun::registerDyadicAdverb(StorageType::WORD_ARRAY, NounType::LIST, DyadicAdverbs::scanWhileOne, StorageType::WORD, NounType::BUILTIN_MONAD, Noun::scanWhileOne_impl);  
+  Noun::registerDyadicAdverb(StorageType::WORD_ARRAY, NounType::LIST, DyadicAdverbs::scanWhileOne, StorageType::WORD, NounType::USER_MONAD, Noun::scanWhileOne_impl);  
+
+  Noun::registerDyadicAdverb(StorageType::WORD_ARRAY, NounType::LIST, DyadicAdverbs::whileOne, StorageType::WORD, NounType::BUILTIN_MONAD, Noun::whileOne_impl);  
+  Noun::registerDyadicAdverb(StorageType::WORD_ARRAY, NounType::LIST, DyadicAdverbs::whileOne, StorageType::WORD, NounType::USER_MONAD, Noun::whileOne_impl);  
 
   // FloatArray
   // Monads
@@ -4806,7 +4989,47 @@ void List::initialize() {
   Noun::registerDyadicAdverb(StorageType::FLOAT_ARRAY, NounType::LIST, DyadicAdverbs::each2, StorageType::WORD, NounType::CHARACTER, Noun::each2_impl);
   Noun::registerDyadicAdverb(StorageType::FLOAT_ARRAY, NounType::LIST, DyadicAdverbs::each2, StorageType::WORD_ARRAY, NounType::STRING, Noun::each2_impl);
 
+  Noun::registerDyadicAdverb(StorageType::FLOAT_ARRAY, NounType::LIST, DyadicAdverbs::eachLeft, StorageType::WORD, NounType::INTEGER, Noun::eachLeft_impl);
+  Noun::registerDyadicAdverb(StorageType::FLOAT_ARRAY, NounType::LIST, DyadicAdverbs::eachLeft, StorageType::FLOAT, NounType::REAL, Noun::eachLeft_impl);
+  Noun::registerDyadicAdverb(StorageType::FLOAT_ARRAY, NounType::LIST, DyadicAdverbs::eachLeft, StorageType::WORD_ARRAY, NounType::LIST, Noun::eachLeft_impl);
+  Noun::registerDyadicAdverb(StorageType::FLOAT_ARRAY, NounType::LIST, DyadicAdverbs::eachLeft, StorageType::FLOAT_ARRAY, NounType::LIST, Noun::eachLeft_impl);
+  Noun::registerDyadicAdverb(StorageType::FLOAT_ARRAY, NounType::LIST, DyadicAdverbs::eachLeft, StorageType::MIXED_ARRAY, NounType::LIST, Noun::eachLeft_impl);
+  Noun::registerDyadicAdverb(StorageType::FLOAT_ARRAY, NounType::LIST, DyadicAdverbs::eachLeft, StorageType::WORD, NounType::CHARACTER, Noun::eachLeft_impl);
+  Noun::registerDyadicAdverb(StorageType::FLOAT_ARRAY, NounType::LIST, DyadicAdverbs::eachLeft, StorageType::WORD_ARRAY, NounType::STRING, Noun::eachLeft_impl);
+
+  Noun::registerDyadicAdverb(StorageType::FLOAT_ARRAY, NounType::LIST, DyadicAdverbs::overNeutral, StorageType::WORD, NounType::INTEGER, Noun::overNeutral_impl);
+  Noun::registerDyadicAdverb(StorageType::FLOAT_ARRAY, NounType::LIST, DyadicAdverbs::overNeutral, StorageType::FLOAT, NounType::REAL, Noun::overNeutral_impl);
+  Noun::registerDyadicAdverb(StorageType::FLOAT_ARRAY, NounType::LIST, DyadicAdverbs::overNeutral, StorageType::WORD_ARRAY, NounType::LIST, Noun::overNeutral_impl);
+  Noun::registerDyadicAdverb(StorageType::FLOAT_ARRAY, NounType::LIST, DyadicAdverbs::overNeutral, StorageType::FLOAT_ARRAY, NounType::LIST, Noun::overNeutral_impl);
+  Noun::registerDyadicAdverb(StorageType::FLOAT_ARRAY, NounType::LIST, DyadicAdverbs::overNeutral, StorageType::MIXED_ARRAY, NounType::LIST, Noun::overNeutral_impl);
+  Noun::registerDyadicAdverb(StorageType::FLOAT_ARRAY, NounType::LIST, DyadicAdverbs::overNeutral, StorageType::WORD, NounType::CHARACTER, Noun::overNeutral_impl);
+  Noun::registerDyadicAdverb(StorageType::FLOAT_ARRAY, NounType::LIST, DyadicAdverbs::overNeutral, StorageType::WORD_ARRAY, NounType::STRING, Noun::overNeutral_impl);
+
+  Noun::registerDyadicAdverb(StorageType::FLOAT_ARRAY, NounType::LIST, DyadicAdverbs::eachRight, StorageType::WORD, NounType::INTEGER, Noun::eachRight_impl);
+  Noun::registerDyadicAdverb(StorageType::FLOAT_ARRAY, NounType::LIST, DyadicAdverbs::eachRight, StorageType::FLOAT, NounType::REAL, Noun::eachRight_impl);
+  Noun::registerDyadicAdverb(StorageType::FLOAT_ARRAY, NounType::LIST, DyadicAdverbs::eachRight, StorageType::WORD_ARRAY, NounType::LIST, Noun::eachRight_impl);
+  Noun::registerDyadicAdverb(StorageType::FLOAT_ARRAY, NounType::LIST, DyadicAdverbs::eachRight, StorageType::FLOAT_ARRAY, NounType::LIST, Noun::eachRight_impl);
+  Noun::registerDyadicAdverb(StorageType::FLOAT_ARRAY, NounType::LIST, DyadicAdverbs::eachRight, StorageType::MIXED_ARRAY, NounType::LIST, Noun::eachRight_impl);
+  Noun::registerDyadicAdverb(StorageType::FLOAT_ARRAY, NounType::LIST, DyadicAdverbs::eachRight, StorageType::WORD, NounType::CHARACTER, Noun::eachRight_impl);
+  Noun::registerDyadicAdverb(StorageType::FLOAT_ARRAY, NounType::LIST, DyadicAdverbs::eachRight, StorageType::WORD_ARRAY, NounType::STRING, Noun::eachRight_impl);
+
   Noun::registerDyadicAdverb(StorageType::FLOAT_ARRAY, NounType::LIST, DyadicAdverbs::iterate, StorageType::WORD, NounType::INTEGER, Noun::iterate_integer);  
+
+  Noun::registerDyadicAdverb(StorageType::FLOAT_ARRAY, NounType::LIST, DyadicAdverbs::scanIterating, StorageType::WORD, NounType::INTEGER, Noun::scanIterating_integer);  
+
+  Noun::registerDyadicAdverb(StorageType::FLOAT_ARRAY, NounType::LIST, DyadicAdverbs::scanOverNeutral, StorageType::WORD, NounType::INTEGER, Noun::scanOverNeutral_impl);
+  Noun::registerDyadicAdverb(StorageType::FLOAT_ARRAY, NounType::LIST, DyadicAdverbs::scanOverNeutral, StorageType::FLOAT, NounType::REAL, Noun::scanOverNeutral_impl);
+  Noun::registerDyadicAdverb(StorageType::FLOAT_ARRAY, NounType::LIST, DyadicAdverbs::scanOverNeutral, StorageType::WORD_ARRAY, NounType::LIST, Noun::scanOverNeutral_impl);
+  Noun::registerDyadicAdverb(StorageType::FLOAT_ARRAY, NounType::LIST, DyadicAdverbs::scanOverNeutral, StorageType::FLOAT_ARRAY, NounType::LIST, Noun::scanOverNeutral_impl);
+  Noun::registerDyadicAdverb(StorageType::FLOAT_ARRAY, NounType::LIST, DyadicAdverbs::scanOverNeutral, StorageType::MIXED_ARRAY, NounType::LIST, Noun::scanOverNeutral_impl);
+  Noun::registerDyadicAdverb(StorageType::FLOAT_ARRAY, NounType::LIST, DyadicAdverbs::scanOverNeutral, StorageType::WORD, NounType::CHARACTER, Noun::scanOverNeutral_impl);
+  Noun::registerDyadicAdverb(StorageType::FLOAT_ARRAY, NounType::LIST, DyadicAdverbs::scanOverNeutral, StorageType::WORD_ARRAY, NounType::STRING, Noun::scanOverNeutral_impl);
+
+  Noun::registerDyadicAdverb(StorageType::FLOAT_ARRAY, NounType::LIST, DyadicAdverbs::scanWhileOne, StorageType::WORD, NounType::BUILTIN_MONAD, Noun::scanWhileOne_impl);  
+  Noun::registerDyadicAdverb(StorageType::FLOAT_ARRAY, NounType::LIST, DyadicAdverbs::scanWhileOne, StorageType::WORD, NounType::USER_MONAD, Noun::scanWhileOne_impl);  
+
+  Noun::registerDyadicAdverb(StorageType::FLOAT_ARRAY, NounType::LIST, DyadicAdverbs::whileOne, StorageType::WORD, NounType::BUILTIN_MONAD, Noun::whileOne_impl);  
+  Noun::registerDyadicAdverb(StorageType::FLOAT_ARRAY, NounType::LIST, DyadicAdverbs::whileOne, StorageType::WORD, NounType::USER_MONAD, Noun::whileOne_impl);  
 
   // MixedArray
   // Monads
@@ -4951,7 +5174,47 @@ void List::initialize() {
   Noun::registerDyadicAdverb(StorageType::MIXED_ARRAY, NounType::LIST, DyadicAdverbs::each2, StorageType::WORD, NounType::CHARACTER, Noun::each2_impl);
   Noun::registerDyadicAdverb(StorageType::MIXED_ARRAY, NounType::LIST, DyadicAdverbs::each2, StorageType::WORD_ARRAY, NounType::STRING, Noun::each2_impl);
 
+  Noun::registerDyadicAdverb(StorageType::MIXED_ARRAY, NounType::LIST, DyadicAdverbs::eachLeft, StorageType::WORD, NounType::INTEGER, Noun::eachLeft_impl);
+  Noun::registerDyadicAdverb(StorageType::MIXED_ARRAY, NounType::LIST, DyadicAdverbs::eachLeft, StorageType::FLOAT, NounType::REAL, Noun::eachLeft_impl);
+  Noun::registerDyadicAdverb(StorageType::MIXED_ARRAY, NounType::LIST, DyadicAdverbs::eachLeft, StorageType::WORD_ARRAY, NounType::LIST, Noun::eachLeft_impl);
+  Noun::registerDyadicAdverb(StorageType::MIXED_ARRAY, NounType::LIST, DyadicAdverbs::eachLeft, StorageType::FLOAT_ARRAY, NounType::LIST, Noun::eachLeft_impl);
+  Noun::registerDyadicAdverb(StorageType::MIXED_ARRAY, NounType::LIST, DyadicAdverbs::eachLeft, StorageType::MIXED_ARRAY, NounType::LIST, Noun::eachLeft_impl);
+  Noun::registerDyadicAdverb(StorageType::MIXED_ARRAY, NounType::LIST, DyadicAdverbs::eachLeft, StorageType::WORD, NounType::CHARACTER, Noun::eachLeft_impl);
+  Noun::registerDyadicAdverb(StorageType::MIXED_ARRAY, NounType::LIST, DyadicAdverbs::eachLeft, StorageType::WORD_ARRAY, NounType::STRING, Noun::eachLeft_impl);
+
+  Noun::registerDyadicAdverb(StorageType::MIXED_ARRAY, NounType::LIST, DyadicAdverbs::overNeutral, StorageType::WORD, NounType::INTEGER, Noun::overNeutral_impl);
+  Noun::registerDyadicAdverb(StorageType::MIXED_ARRAY, NounType::LIST, DyadicAdverbs::overNeutral, StorageType::FLOAT, NounType::REAL, Noun::overNeutral_impl);
+  Noun::registerDyadicAdverb(StorageType::MIXED_ARRAY, NounType::LIST, DyadicAdverbs::overNeutral, StorageType::WORD_ARRAY, NounType::LIST, Noun::overNeutral_impl);
+  Noun::registerDyadicAdverb(StorageType::MIXED_ARRAY, NounType::LIST, DyadicAdverbs::overNeutral, StorageType::FLOAT_ARRAY, NounType::LIST, Noun::overNeutral_impl);
+  Noun::registerDyadicAdverb(StorageType::MIXED_ARRAY, NounType::LIST, DyadicAdverbs::overNeutral, StorageType::MIXED_ARRAY, NounType::LIST, Noun::overNeutral_impl);
+  Noun::registerDyadicAdverb(StorageType::MIXED_ARRAY, NounType::LIST, DyadicAdverbs::overNeutral, StorageType::WORD, NounType::CHARACTER, Noun::overNeutral_impl);
+  Noun::registerDyadicAdverb(StorageType::MIXED_ARRAY, NounType::LIST, DyadicAdverbs::overNeutral, StorageType::WORD_ARRAY, NounType::STRING, Noun::overNeutral_impl);
+
+  Noun::registerDyadicAdverb(StorageType::MIXED_ARRAY, NounType::LIST, DyadicAdverbs::eachRight, StorageType::WORD, NounType::INTEGER, Noun::eachRight_impl);
+  Noun::registerDyadicAdverb(StorageType::MIXED_ARRAY, NounType::LIST, DyadicAdverbs::eachRight, StorageType::FLOAT, NounType::REAL, Noun::eachRight_impl);
+  Noun::registerDyadicAdverb(StorageType::MIXED_ARRAY, NounType::LIST, DyadicAdverbs::eachRight, StorageType::WORD_ARRAY, NounType::LIST, Noun::eachRight_impl);
+  Noun::registerDyadicAdverb(StorageType::MIXED_ARRAY, NounType::LIST, DyadicAdverbs::eachRight, StorageType::FLOAT_ARRAY, NounType::LIST, Noun::eachRight_impl);
+  Noun::registerDyadicAdverb(StorageType::MIXED_ARRAY, NounType::LIST, DyadicAdverbs::eachRight, StorageType::MIXED_ARRAY, NounType::LIST, Noun::eachRight_impl);
+  Noun::registerDyadicAdverb(StorageType::MIXED_ARRAY, NounType::LIST, DyadicAdverbs::eachRight, StorageType::WORD, NounType::CHARACTER, Noun::eachRight_impl);
+  Noun::registerDyadicAdverb(StorageType::MIXED_ARRAY, NounType::LIST, DyadicAdverbs::eachRight, StorageType::WORD_ARRAY, NounType::STRING, Noun::eachRight_impl);
+
   Noun::registerDyadicAdverb(StorageType::MIXED_ARRAY, NounType::LIST, DyadicAdverbs::iterate, StorageType::WORD, NounType::INTEGER, Noun::iterate_integer);
+
+  Noun::registerDyadicAdverb(StorageType::MIXED_ARRAY, NounType::LIST, DyadicAdverbs::scanIterating, StorageType::WORD, NounType::INTEGER, Noun::scanIterating_integer);
+
+  Noun::registerDyadicAdverb(StorageType::MIXED_ARRAY, NounType::LIST, DyadicAdverbs::scanOverNeutral, StorageType::WORD, NounType::INTEGER, Noun::scanOverNeutral_impl);
+  Noun::registerDyadicAdverb(StorageType::MIXED_ARRAY, NounType::LIST, DyadicAdverbs::scanOverNeutral, StorageType::FLOAT, NounType::REAL, Noun::scanOverNeutral_impl);
+  Noun::registerDyadicAdverb(StorageType::MIXED_ARRAY, NounType::LIST, DyadicAdverbs::scanOverNeutral, StorageType::WORD_ARRAY, NounType::LIST, Noun::scanOverNeutral_impl);
+  Noun::registerDyadicAdverb(StorageType::MIXED_ARRAY, NounType::LIST, DyadicAdverbs::scanOverNeutral, StorageType::FLOAT_ARRAY, NounType::LIST, Noun::scanOverNeutral_impl);
+  Noun::registerDyadicAdverb(StorageType::MIXED_ARRAY, NounType::LIST, DyadicAdverbs::scanOverNeutral, StorageType::MIXED_ARRAY, NounType::LIST, Noun::scanOverNeutral_impl);
+  Noun::registerDyadicAdverb(StorageType::MIXED_ARRAY, NounType::LIST, DyadicAdverbs::scanOverNeutral, StorageType::WORD, NounType::CHARACTER, Noun::scanOverNeutral_impl);
+  Noun::registerDyadicAdverb(StorageType::MIXED_ARRAY, NounType::LIST, DyadicAdverbs::scanOverNeutral, StorageType::WORD_ARRAY, NounType::STRING, Noun::scanOverNeutral_impl);
+
+  Noun::registerDyadicAdverb(StorageType::MIXED_ARRAY, NounType::LIST, DyadicAdverbs::scanWhileOne, StorageType::WORD, NounType::BUILTIN_MONAD, Noun::scanWhileOne_impl);
+  Noun::registerDyadicAdverb(StorageType::MIXED_ARRAY, NounType::LIST, DyadicAdverbs::scanWhileOne, StorageType::WORD, NounType::USER_MONAD, Noun::scanWhileOne_impl);
+
+  Noun::registerDyadicAdverb(StorageType::MIXED_ARRAY, NounType::LIST, DyadicAdverbs::whileOne, StorageType::WORD, NounType::BUILTIN_MONAD, Noun::whileOne_impl);
+  Noun::registerDyadicAdverb(StorageType::MIXED_ARRAY, NounType::LIST, DyadicAdverbs::whileOne, StorageType::WORD, NounType::USER_MONAD, Noun::whileOne_impl);
 }
 
 Storage List::atom_impl(Storage i) {
@@ -12399,7 +12662,7 @@ Storage List::each_integers(Storage i, Storage f)
     mixed results = mixed();
     for(int y : iis)
     {
-      Storage result = Noun::dispatchMonad(i, Word::make(y));
+      Storage result = Noun::dispatchMonad(Integer::make(y), f);
 
       if(result.o == NounType::ERROR)
       {
@@ -12424,7 +12687,7 @@ Storage List::each_reals(Storage i, Storage f)
     mixed results = mixed();
     for(int y : iis)
     {
-      Storage result = Noun::dispatchMonad(i, Float::make(y));
+      Storage result = Noun::dispatchMonad(Real::make(y), f);
 
       if(result.o == NounType::ERROR)
       {
@@ -12449,7 +12712,7 @@ Storage List::each_mixed(Storage i, Storage f)
     mixed results = mixed();
     for(Storage y : iis)
     {
-      Storage result = Noun::dispatchMonad(i, y);
+      Storage result = Noun::dispatchMonad(y, f);
 
       if(result.o == NounType::ERROR)
       {
@@ -12919,6 +13182,7 @@ void Character::initialize() {
   Noun::registerMonad(StorageType::WORD, NounType::CHARACTER, Monads::enclose, Character::enclose_impl);
   Noun::registerMonad(StorageType::WORD, NounType::CHARACTER, Monads::first, Noun::identity1);
   Noun::registerMonad(StorageType::WORD, NounType::CHARACTER, Monads::reverse, Noun::identity1);
+  Noun::registerMonad(StorageType::WORD, NounType::CHARACTER, Monads::shape, Noun::shape_scalar);
   Noun::registerMonad(StorageType::WORD, NounType::CHARACTER, Monads::size, Character::size_impl);
 
   // Extension Monads
@@ -12949,7 +13213,24 @@ void Character::initialize() {
 
   Noun::registerMonadicAdverb(StorageType::WORD, NounType::CHARACTER, MonadicAdverbs::scanConverging, Noun::scanConverging_impl);  
 
+  // Dyadic Adverbs
   Noun::registerDyadicAdverb(StorageType::WORD, NounType::CHARACTER, DyadicAdverbs::iterate, StorageType::WORD, NounType::INTEGER, Noun::iterate_integer);  
+
+  Noun::registerDyadicAdverb(StorageType::WORD, NounType::CHARACTER, DyadicAdverbs::scanIterating, StorageType::WORD, NounType::INTEGER, Noun::scanIterating_integer);  
+
+  Noun::registerDyadicAdverb(StorageType::WORD, NounType::CHARACTER, DyadicAdverbs::scanOverNeutral, StorageType::WORD, NounType::BUILTIN_MONAD, Noun::scanOverNeutral_impl);  
+  Noun::registerDyadicAdverb(StorageType::WORD, NounType::CHARACTER, DyadicAdverbs::scanOverNeutral, StorageType::WORD, NounType::USER_MONAD, Noun::scanOverNeutral_impl);  
+
+  Noun::registerDyadicAdverb(StorageType::WORD, NounType::CHARACTER, DyadicAdverbs::scanWhileOne, StorageType::WORD, NounType::BUILTIN_MONAD, Noun::scanWhileOne_impl);  
+  Noun::registerDyadicAdverb(StorageType::WORD, NounType::CHARACTER, DyadicAdverbs::scanWhileOne, StorageType::WORD, NounType::USER_MONAD, Noun::scanWhileOne_impl);  
+
+  Noun::registerDyadicAdverb(StorageType::WORD, NounType::CHARACTER, DyadicAdverbs::whileOne, StorageType::WORD, NounType::BUILTIN_MONAD, Noun::whileOne_impl);  
+  Noun::registerDyadicAdverb(StorageType::WORD, NounType::CHARACTER, DyadicAdverbs::whileOne, StorageType::WORD, NounType::USER_MONAD, Noun::whileOne_impl);  
+}
+
+Storage Character::make(int i)
+{
+  return Word::make(i, NounType::CHARACTER);
 }
 
 Storage Character::enclose_impl(Storage i) {
@@ -13141,6 +13422,7 @@ void IotaString::initialize() {
   Noun::registerMonad(StorageType::WORD_ARRAY, NounType::STRING, Monads::gradeDown, IotaString::gradeDown_impl);
   Noun::registerMonad(StorageType::WORD_ARRAY, NounType::STRING, Monads::gradeUp, IotaString::gradeUp_impl);
   Noun::registerMonad(StorageType::WORD_ARRAY, NounType::STRING, Monads::reverse, IotaString::reverse_impl);
+  Noun::registerMonad(StorageType::WORD_ARRAY, NounType::STRING, Monads::shape, List::shape_impl);
   Noun::registerMonad(StorageType::WORD_ARRAY, NounType::STRING, Monads::size, IotaString::size_impl);
 
   // Extension Monads
@@ -13182,6 +13464,17 @@ void IotaString::initialize() {
   Noun::registerMonadicAdverb(StorageType::WORD_ARRAY, NounType::STRING, MonadicAdverbs::scanConverging, Noun::scanConverging_impl);  
 
   Noun::registerDyadicAdverb(StorageType::WORD_ARRAY, NounType::STRING, DyadicAdverbs::iterate, StorageType::WORD, NounType::INTEGER, Noun::iterate_integer);  
+
+  Noun::registerDyadicAdverb(StorageType::WORD_ARRAY, NounType::STRING, DyadicAdverbs::scanIterating, StorageType::WORD, NounType::INTEGER, Noun::scanIterating_integer);  
+
+  Noun::registerDyadicAdverb(StorageType::WORD_ARRAY, NounType::STRING, DyadicAdverbs::scanOverNeutral, StorageType::WORD, NounType::BUILTIN_MONAD, Noun::scanOverNeutral_impl);  
+  Noun::registerDyadicAdverb(StorageType::WORD_ARRAY, NounType::STRING, DyadicAdverbs::scanOverNeutral, StorageType::WORD, NounType::USER_MONAD, Noun::scanOverNeutral_impl);  
+
+  Noun::registerDyadicAdverb(StorageType::WORD_ARRAY, NounType::STRING, DyadicAdverbs::scanWhileOne, StorageType::WORD, NounType::BUILTIN_MONAD, Noun::scanWhileOne_impl);  
+  Noun::registerDyadicAdverb(StorageType::WORD_ARRAY, NounType::STRING, DyadicAdverbs::scanWhileOne, StorageType::WORD, NounType::USER_MONAD, Noun::scanWhileOne_impl);  
+
+  Noun::registerDyadicAdverb(StorageType::WORD_ARRAY, NounType::STRING, DyadicAdverbs::whileOne, StorageType::WORD, NounType::BUILTIN_MONAD, Noun::whileOne_impl);  
+  Noun::registerDyadicAdverb(StorageType::WORD_ARRAY, NounType::STRING, DyadicAdverbs::whileOne, StorageType::WORD, NounType::USER_MONAD, Noun::whileOne_impl);  
 }
 
 Storage IotaString::make(ints i)
@@ -13613,7 +13906,7 @@ Storage IotaString::each_impl(Storage i, Storage f)
     mixed results = mixed();
     for(int y : iis)
     {
-      Storage result = Noun::dispatchMonad(i, Word::make(y));
+      Storage result = Noun::dispatchMonad(Character::make(y), f);
 
       if(result.o == NounType::ERROR)
       {

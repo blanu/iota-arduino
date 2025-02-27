@@ -76,8 +76,8 @@ Storage overNeutral(Storage i, Storage f, Storage x);
 Storage iterate(Storage i, Storage f, Storage x);
 Storage scanIterating(Storage i, Storage f, Storage x);
 Storage scanOverNeutral(Storage i, Storage f, Storage x);
-Storage scanWhileTrue(Storage i, Storage f, Storage x);
-Storage whileTrue(Storage i, Storage f, Storage x);
+Storage scanWhileOne(Storage i, Storage f, Storage x);
+Storage whileOne(Storage i, Storage f, Storage x);
 
 using Symbol = int;
 using Specialization3 = std::tuple<Symbol, Symbol, Symbol>;
@@ -149,8 +149,8 @@ class Noun
     static Storage iterate_integer(Storage i, Storage f, Storage x);
     static Storage scanIterating_integer(Storage i, Storage f, Storage x);
     static Storage scanOverNeutral_impl(Storage i, Storage f, Storage x);
-    static Storage scanWhileTrue_impl(Storage i, Storage f, Storage g);
-    static Storage whileTrue_impl(Storage i, Storage f, Storage g);
+    static Storage scanWhileOne_impl(Storage i, Storage f, Storage g);
+    static Storage whileOne_impl(Storage i, Storage f, Storage g);
 
     // General serialization
     static maybe<Storage> from_bytes(bytes data);
@@ -244,6 +244,10 @@ class Real
   public:
     // Initialize dispatch table
     static void initialize();
+
+    static Storage make(float i);
+    static Storage zero();
+    static Storage one();
 
     static Storage enclose_impl(Storage i);    
     static Storage floor_impl(Storage i);
@@ -424,6 +428,8 @@ class Character
   public:
     // Initialize dispatch table
     static void initialize();
+
+    static Storage make(int i);
 
     // Monads
     static Storage enclose_impl(Storage i);    
