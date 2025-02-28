@@ -10,6 +10,7 @@ class Monads
     static const int inot = 2;
     static const int enclose = 3;
     static const int enumerate = 4;
+    static const int expand = 27;
     static const int first = 5;
     static const int floor = 6;
     static const int format = 7;
@@ -39,7 +40,6 @@ class Dyads
     static const int divide = 24;
     static const int drop = 25;
     static const int equal = 26;
-    static const int expand = 27;
     static const int find = 28;
     static const int form = 29;
     static const int format2 = 30;

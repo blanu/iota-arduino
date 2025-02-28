@@ -18,6 +18,7 @@ Storage atom(Storage i);
 Storage ichar(Storage i);
 Storage enclose(Storage i);
 Storage enumerate(Storage i);
+Storage expand(Storage i);
 Storage first(Storage i);
 Storage floor(Storage i);
 Storage format(Storage i);
@@ -182,6 +183,7 @@ class Integer
     static Storage char_impl(Storage i);    
     static Storage enclose_impl(Storage i);    
     static Storage enumerate_impl(Storage i);
+    static Storage expand_impl(Storage i);    
     static Storage floor_impl(Storage i);
     static Storage negate_impl(Storage i);    
     static Storage not_impl(Storage i);
@@ -313,6 +315,7 @@ class List
     static Storage atom_impl(Storage i);    
     static Storage char_impl(Storage i);    
     static Storage enclose_impl(Storage i);    
+    static Storage expand_impl(Storage i);    
     static Storage first_impl(Storage i);
     static Storage floor_impl(Storage i);
     static Storage gradeDown_impl(Storage i);
@@ -441,7 +444,7 @@ class Character
 
     // Dyads
     static Storage equal_impl(Storage i, Storage x);
-    
+
     // Join
     static Storage join_scalar(Storage i, Storage x);
     static Storage join_character(Storage i, Storage x);

@@ -33,6 +33,11 @@ Storage enumerate(Storage i)  // !a
   return Noun::dispatchMonad(i, Word::make(Monads::enumerate, NounType::BUILTIN_MONAD));
 }
 
+Storage expand(Storage i, Storage x) // &b
+{
+  return Noun::dispatchDyad(i, Word::make(Monads::expand, NounType::BUILTIN_MONAD), x);
+}
+
 Storage first(Storage i)  // *a
 {
   return Noun::dispatchMonad(i, Word::make(Monads::first, NounType::BUILTIN_MONAD));
@@ -1451,6 +1456,7 @@ void Integer::initialize() {
   Noun::registerMonad(StorageType::WORD, NounType::INTEGER, Monads::ichar, Integer::char_impl);
   Noun::registerMonad(StorageType::WORD, NounType::INTEGER, Monads::inot, Integer::not_impl);
   Noun::registerMonad(StorageType::WORD, NounType::INTEGER, Monads::enclose, Integer::enclose_impl);
+  Noun::registerMonad(StorageType::WORD, NounType::INTEGER, Monads::expand, Integer::expand_impl);
   Noun::registerMonad(StorageType::WORD, NounType::INTEGER, Monads::enumerate, Integer::enumerate_impl);
   Noun::registerMonad(StorageType::WORD, NounType::INTEGER, Monads::first, Noun::identity1);
   Noun::registerMonad(StorageType::WORD, NounType::INTEGER, Monads::floor, Noun::identity1);
@@ -1655,6 +1661,26 @@ Storage Integer::enumerate_impl(Storage i) {
 
     return WordArray::make(results, NounType::LIST);
   } else {
+    return Word::make(UNSUPPORTED_OBJECT, NounType::ERROR);
+  }
+}
+
+Storage Integer::expand_impl(Storage i)
+{
+  if (std::holds_alternative<int>(i.i))
+  {
+    int integer = std::get<int>(i.i);
+
+    ints results = ints();
+    for(int index = 0; index < integer; index++)
+    {
+      results.push_back(0);
+    }
+
+    return WordArray::make(results, NounType::LIST);
+  }
+  else
+  {
     return Word::make(UNSUPPORTED_OBJECT, NounType::ERROR);
   }
 }
@@ -4680,6 +4706,7 @@ void List::initialize() {
   Noun::registerMonad(StorageType::WORD_ARRAY, NounType::LIST, Monads::ichar, List::char_impl);
   Noun::registerMonad(StorageType::WORD_ARRAY, NounType::LIST, Monads::inot, List::not_impl);
   Noun::registerMonad(StorageType::WORD_ARRAY, NounType::LIST, Monads::enclose, Noun::enclose_impl);
+  Noun::registerMonad(StorageType::WORD_ARRAY, NounType::LIST, Monads::expand, List::expand_impl);
   Noun::registerMonad(StorageType::WORD_ARRAY, NounType::LIST, Monads::first, List::first_impl);
   Noun::registerMonad(StorageType::WORD_ARRAY, NounType::LIST, Monads::floor, Noun::identity1);
   // FIXME - format
@@ -5279,6 +5306,37 @@ Storage List::char_impl(Storage i) {
       return Word::make(UNSUPPORTED_OBJECT, NounType::ERROR);
     }
   } else {
+    return Word::make(UNSUPPORTED_OBJECT, NounType::ERROR);
+  }
+}
+
+Storage List::expand_impl(Storage i)
+{
+  if (std::holds_alternative<ints>(i.i))
+  {
+    ints integers = std::get<ints>(i.i);
+
+    if(integers.empty())
+    {
+      return WordArray::nil();
+    }
+
+    ints results = ints();
+
+    for(int index = 0; index < integers.size(); index++)
+    {
+      int count = integers[index];
+
+      for(int y = 0; y < count; y++)
+      {
+        results.push_back(index);
+      }
+    }
+
+    return WordArray::make(results);
+  }
+  else
+  {
     return Word::make(UNSUPPORTED_OBJECT, NounType::ERROR);
   }
 }
