@@ -440,6 +440,8 @@ class Character
     static Storage size_impl(Storage i);    
 
     // Dyads
+    static Storage equal_impl(Storage i, Storage x);
+    
     // Join
     static Storage join_scalar(Storage i, Storage x);
     static Storage join_character(Storage i, Storage x);
@@ -477,6 +479,7 @@ class IotaString
     static Storage size_impl(Storage i);    
 
     // Dyads
+    static Storage equal_impl(Storage i, Storage x);
     static Storage less_string(Storage i, Storage x);
     static Storage index_impl(Storage i, Storage x);
     

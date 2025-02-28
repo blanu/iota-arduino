@@ -13383,6 +13383,8 @@ void Character::initialize() {
   Noun::registerMonad(StorageType::WORD_ARRAY, NounType::CHARACTER, Monads::evaluate, Noun::identity1);
 
   // Dyads
+  Noun::registerDyad(StorageType::WORD, NounType::CHARACTER, Dyads::equal, StorageType::WORD, NounType::CHARACTER, Character::equal_impl);
+
   Noun::registerDyad(StorageType::WORD, NounType::CHARACTER, Dyads::join, StorageType::WORD, NounType::INTEGER, Character::join_scalar);
   Noun::registerDyad(StorageType::WORD, NounType::CHARACTER, Dyads::join, StorageType::FLOAT, NounType::REAL, Character::join_scalar);
   Noun::registerDyad(StorageType::WORD, NounType::CHARACTER, Dyads::join, StorageType::WORD_ARRAY, NounType::LIST, Character::join_list);
@@ -13424,6 +13426,23 @@ void Character::initialize() {
 Storage Character::make(int i)
 {
   return Word::make(i, NounType::CHARACTER);
+}
+
+Storage Character::equal_impl(Storage i, Storage x)
+{
+  if(std::holds_alternative<int>(i.i))
+  {
+    int ii = std::get<int>(i.i);
+
+    if(std::holds_alternative<int>(x.i))
+    {
+      int xi = std::get<int>(x.i);
+
+      return Word::make(ii == xi, NounType::INTEGER);
+    }
+  }
+
+  return Word::make(UNSUPPORTED_OBJECT, NounType::ERROR);
 }
 
 Storage Character::enclose_impl(Storage i) {
@@ -13622,6 +13641,7 @@ Noun::registerMonad(StorageType::WORD_ARRAY, NounType::STRING, Monads::group, Io
   Noun::registerMonad(StorageType::WORD_ARRAY, NounType::STRING, Monads::evaluate, Noun::identity1);
 
   // Dyads
+  Noun::registerDyad(StorageType::WORD_ARRAY, NounType::STRING, Dyads::equal, StorageType::WORD_ARRAY, NounType::STRING, IotaString::equal_impl);
   Noun::registerDyad(StorageType::WORD_ARRAY, NounType::STRING, Dyads::find, StorageType::WORD, NounType::CHARACTER, List::find_impl);
   Noun::registerDyad(StorageType::WORD_ARRAY, NounType::STRING, Dyads::find, StorageType::WORD_ARRAY, NounType::STRING, List::find_impl);
 
@@ -13898,6 +13918,36 @@ Storage IotaString::group_impl(Storage i)
 }
 
 // Dyads
+Storage IotaString::equal_impl(Storage i, Storage x)
+{
+  if(std::holds_alternative<ints>(i.i))
+  {
+    ints iis = std::get<ints>(i.i);
+
+    if(std::holds_alternative<ints>(x.i))
+    {
+      ints xis = std::get<ints>(x.i);
+
+      if(iis.size() != xis.size())
+      {
+        return Noun::false0();
+      }
+
+      for(int index = 0; index < iis.size(); index++)
+      {
+        if(iis[index] != xis[index])
+        {
+          return Noun::false0();
+        }
+      }
+
+      return Noun::true0();
+    }
+  }
+
+  return Word::make(UNSUPPORTED_OBJECT, NounType::ERROR);
+}
+
 Storage IotaString::index_impl(Storage i, Storage x)
 {
   if(std::holds_alternative<ints>(i.i))
