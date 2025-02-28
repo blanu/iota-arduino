@@ -64,19 +64,61 @@ class Storage
 
     int truth();
 
-    bool operator==(const Storage& other) const
-    {
-        return (o == other.o) && (t == other.t) && (i == other.i);
-    }
+    bool operator==(const Storage& other) const;
 };
 
-// FIXME - implement general hash function for Storage
-// struct StorageHash {
-//     std::size_t operator()(const Storage& i) const
-//     {
-//         return std::hash<int>()(i.t) ^ (std::hash<int>()(i.o) ^ std::hash<I>()(i.i) << 1);
-//     }
-// };
+namespace std
+{
+  template<>
+  struct hash<Storage>
+  {
+      std::size_t operator()(const Storage& i) const
+      {
+        std::size_t ht = std::hash<int>()(i.t);
+        std::size_t ho = std::hash<int>()(i.o);
+        std::size_t hi = 0;
+
+        if(std::holds_alternative<int>(i.i))
+        {
+          int ii = std::get<int>(i.i);
+          hi = std::hash<int>()(ii);
+        }
+        else if(std::holds_alternative<float>(i.i))
+        {
+          float ii = std::get<float>(i.i);
+          hi = std::hash<float>()(ii);
+        }
+        else if(std::holds_alternative<ints>(i.i))
+        {
+          ints ii = std::get<ints>(i.i);
+          hi = ii.size();
+          for(int y : ii)
+          {
+            hi ^= std::hash<int>()(y) + 0x9e3779b9 + (hi << 6) + (hi >> 2);
+          }
+        }
+        else if(std::holds_alternative<floats>(i.i))
+        {
+          floats ii = std::get<floats>(i.i);
+          hi = ii.size();
+          for(float y : ii)
+          {
+            hi ^= std::hash<float>()(y) + 0x9e3779b9 + (hi << 6) + (hi >> 2);
+          }
+        }
+        else if(std::holds_alternative<mixed>(i.i))
+        {
+          mixed ii = std::get<mixed>(i.i);
+          for(Storage y : ii)
+          {
+            hi ^= std::hash<Storage>()(y) + 0x9e3779b9 + (hi << 6) + (hi >> 2);
+          }
+        }
+
+        return ht ^ (ho << 1) ^ (hi << 2);
+      }
+  };
+}
 
 class Word
 {

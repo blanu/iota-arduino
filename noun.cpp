@@ -59,6 +59,11 @@ Storage gradeUp(Storage i)  // <a
   return Noun::dispatchMonad(i, Word::make(Monads::gradeUp, NounType::BUILTIN_MONAD));
 }
 
+Storage group(Storage i)  // =a
+{
+  return Noun::dispatchMonad(i, Word::make(Monads::group, NounType::BUILTIN_MONAD));
+}
+
 Storage negate(Storage i) // -a
 {
   return Noun::dispatchMonad(i, Word::make(Monads::negate, NounType::BUILTIN_MONAD));
@@ -4680,7 +4685,7 @@ void List::initialize() {
   // FIXME - format
   Noun::registerMonad(StorageType::WORD_ARRAY, NounType::LIST, Monads::gradeDown, List::gradeDown_impl);
   Noun::registerMonad(StorageType::WORD_ARRAY, NounType::LIST, Monads::gradeUp, List::gradeUp_impl);
-  // FIXME - group
+  Noun::registerMonad(StorageType::WORD_ARRAY, NounType::LIST, Monads::group, List::group_impl);
   Noun::registerMonad(StorageType::WORD_ARRAY, NounType::LIST, Monads::negate, List::negate_impl);
   Noun::registerMonad(StorageType::WORD_ARRAY, NounType::LIST, Monads::reciprocal, List::reciprocal_impl);
   Noun::registerMonad(StorageType::WORD_ARRAY, NounType::LIST, Monads::reverse, List::reverse_impl);
@@ -4866,7 +4871,7 @@ void List::initialize() {
   // FIXME - format
   Noun::registerMonad(StorageType::FLOAT_ARRAY, NounType::LIST, Monads::gradeDown, List::gradeDown_impl);
   Noun::registerMonad(StorageType::FLOAT_ARRAY, NounType::LIST, Monads::gradeUp, List::gradeUp_impl);
-  // FIXME - group
+  Noun::registerMonad(StorageType::FLOAT_ARRAY, NounType::LIST, Monads::group, List::group_impl);
   Noun::registerMonad(StorageType::FLOAT_ARRAY, NounType::LIST, Monads::negate, List::negate_impl);
   Noun::registerMonad(StorageType::FLOAT_ARRAY, NounType::LIST, Monads::reciprocal, List::reciprocal_impl);
   Noun::registerMonad(StorageType::FLOAT_ARRAY, NounType::LIST, Monads::reverse, List::reverse_impl);
@@ -5042,7 +5047,7 @@ void List::initialize() {
   // FIXME - format
   Noun::registerMonad(StorageType::MIXED_ARRAY, NounType::LIST, Monads::gradeDown, List::gradeDown_impl);
   Noun::registerMonad(StorageType::MIXED_ARRAY, NounType::LIST, Monads::gradeUp, List::gradeUp_impl);
-  // FIXME - group
+  Noun::registerMonad(StorageType::MIXED_ARRAY, NounType::LIST, Monads::group, List::group_impl);
   Noun::registerMonad(StorageType::MIXED_ARRAY, NounType::LIST, Monads::negate, List::negate_impl);
   Noun::registerMonad(StorageType::MIXED_ARRAY, NounType::LIST, Monads::reciprocal, List::reciprocal_impl);
   Noun::registerMonad(StorageType::MIXED_ARRAY, NounType::LIST, Monads::reverse, List::reverse_impl);
@@ -5593,6 +5598,194 @@ Storage List::gradeUp_impl(Storage i)
     }
 
     return WordArray::make(results, NounType::LIST);
+  }
+  else
+  {
+    return Word::make(UNSUPPORTED_OBJECT, NounType::ERROR);
+  }
+}
+
+Storage List::group_impl(Storage i)
+{
+  if (std::holds_alternative<ints>(i.i))
+  {
+    ints items = std::get<ints>(i.i);
+    if(items.empty())
+    {
+      return WordArray::nil();
+    }
+
+    // Map from the item to the first index in the group
+    std::unordered_map<int, int> firsts=std::unordered_map<int, int>();
+
+    // Groups sorted by the first index in each group
+    std::map<int, ints> groups=std::map<int, ints>();
+    
+    for (int index = 0; index < items.size(); index++)
+    {
+      // Get each item in the list
+      int item = items[index];
+
+      // Have we seen this item before?
+      if(firsts.find(item) == firsts.end())
+      {
+        // This is a new item
+
+        // Remmeber that this index was the first seen for this item
+        firsts.insert({item, index});
+
+        // Create a new group with this index in it
+        ints group = ints({index + 1});
+
+        // Store the group sorted by first index in the group
+        groups[index] = group;
+      }
+      else
+      {
+        // This is a repeated item
+
+        // Find the first index for this group
+        int first = firsts[item];
+
+        // Get the group by the first index
+        ints group = groups[first];
+
+        // Add the item to the group
+        group.push_back(index + 1);
+
+        // Store the group sorted by first index in the group
+        groups[first] = group;
+      }
+    }
+
+    mixed results = mixed();
+    for (auto pair = groups.begin(); pair != groups.end(); pair++)
+    {
+      ints group = pair->second;
+      results.push_back(WordArray::make(group));
+    }  
+
+    return MixedArray::make(results);
+  }
+  else if(std::holds_alternative<floats>(i.i))
+  {
+    floats items = std::get<floats>(i.i);
+    if(items.empty())
+    {
+      return WordArray::nil();
+    }
+
+    // Map from the item to the first index in the group
+    std::unordered_map<float, int> firsts=std::unordered_map<float, int>();
+
+    // Groups sorted by the first index in each group
+    std::map<int, ints> groups=std::map<int, ints>();
+    
+    for (int index = 0; index < items.size(); index++)
+    {
+      // Get each item in the list
+      float item = items[index];
+
+      // Have we seen this item before?
+      if(firsts.find(item) == firsts.end())
+      {
+        // This is a new item
+
+        // Remmeber that this index was the first seen for this item
+        firsts.insert({item, index});
+
+        // Create a new group with this index in it
+        ints group = ints({index + 1});
+
+        // Store the group sorted by first index in the group
+        groups[index] = group;
+      }
+      else
+      {
+        // This is a repeated item
+
+        // Find the first index for this group
+        int first = firsts[item];
+
+        // Get the group by the first index
+        ints group = groups[first];
+
+        // Add the item to the group
+        group.push_back(index + 1);
+
+        // Store the group sorted by first index in the group
+        groups[first] = group;
+      }
+    }
+
+    mixed results = mixed();
+    for (auto pair = groups.begin(); pair != groups.end(); pair++)
+    {
+      ints group = pair->second;
+      results.push_back(WordArray::make(group));
+    }  
+
+    return MixedArray::make(results);
+  }
+  else if(std::holds_alternative<mixed>(i.i))
+  {
+    mixed items = std::get<mixed>(i.i);
+    if(items.empty())
+    {
+      return WordArray::nil();
+    }
+
+    // Map from the item to the first index in the group
+    std::unordered_map<Storage, int> firsts=std::unordered_map<Storage, int>();
+
+    // Groups sorted by the first index in each group
+    std::map<int, ints> groups=std::map<int, ints>();
+    
+    for (int index = 0; index < items.size(); index++)
+    {
+      // Get each item in the list
+      Storage item = items[index];
+
+      // Have we seen this item before?
+      if(firsts.find(item) == firsts.end())
+      {
+        // This is a new item
+
+        // Remmeber that this index was the first seen for this item
+        firsts.insert({item, index});
+
+        // Create a new group with this index in it
+        ints group = ints({index + 1});
+
+        // Store the group sorted by first index in the group
+        groups[index] = group;
+      }
+      else
+      {
+        // This is a repeated item
+
+        // Find the first index for this group
+        int first = firsts[item];
+
+        // Get the group by the first index
+        ints group = groups[first];
+
+        // Add the item to the group
+        group.push_back(index + 1);
+
+        // Store the group sorted by first index in the group
+        groups[first] = group;
+      }
+    }
+
+    mixed results = mixed();
+    for (auto pair = groups.begin(); pair != groups.end(); pair++)
+    {
+      ints group = pair->second;
+      results.push_back(WordArray::make(group));
+    }  
+
+    return MixedArray::make(results);
   }
   else
   {
@@ -13421,7 +13614,7 @@ void IotaString::initialize() {
   Noun::registerMonad(StorageType::WORD_ARRAY, NounType::STRING, Monads::first, IotaString::first_impl);
   Noun::registerMonad(StorageType::WORD_ARRAY, NounType::STRING, Monads::gradeDown, IotaString::gradeDown_impl);
   Noun::registerMonad(StorageType::WORD_ARRAY, NounType::STRING, Monads::gradeUp, IotaString::gradeUp_impl);
-  Noun::registerMonad(StorageType::WORD_ARRAY, NounType::STRING, Monads::reverse, IotaString::reverse_impl);
+Noun::registerMonad(StorageType::WORD_ARRAY, NounType::STRING, Monads::group, IotaString::group_impl);  Noun::registerMonad(StorageType::WORD_ARRAY, NounType::STRING, Monads::reverse, IotaString::reverse_impl);
   Noun::registerMonad(StorageType::WORD_ARRAY, NounType::STRING, Monads::shape, List::shape_impl);
   Noun::registerMonad(StorageType::WORD_ARRAY, NounType::STRING, Monads::size, IotaString::size_impl);
 
@@ -13629,6 +13822,74 @@ Storage IotaString::size_impl(Storage i)
     int result = static_cast<int>(integers.size());
     
     return Word::make(result, NounType::INTEGER);
+  }
+  else
+  {
+    return Word::make(UNSUPPORTED_OBJECT, NounType::ERROR);
+  }
+}
+
+Storage IotaString::group_impl(Storage i)
+{
+  if (std::holds_alternative<ints>(i.i))
+  {
+    ints items = std::get<ints>(i.i);
+    if(items.empty())
+    {
+      return WordArray::nil();
+    }
+
+    // Map from the item to the first index in the group
+    std::unordered_map<int, int> firsts=std::unordered_map<int, int>();
+
+    // Groups sorted by the first index in each group
+    std::map<int, ints> groups=std::map<int, ints>();
+    
+    for (int index = 0; index < items.size(); index++)
+    {
+      // Get each item in the list
+      int item = items[index];
+
+      // Have we seen this item before?
+      if(firsts.find(item) == firsts.end())
+      {
+        // This is a new item
+
+        // Remmeber that this index was the first seen for this item
+        firsts.insert({item, index});
+
+        // Create a new group with this index in it
+        ints group = ints({index + 1});
+
+        // Store the group sorted by first index in the group
+        groups[index] = group;
+      }
+      else
+      {
+        // This is a repeated item
+
+        // Find the first index for this group
+        int first = firsts[item];
+
+        // Get the group by the first index
+        ints group = groups[first];
+
+        // Add the item to the group
+        group.push_back(index + 1);
+
+        // Store the group sorted by first index in the group
+        groups[first] = group;
+      }
+    }
+
+    mixed results = mixed();
+    for (auto pair = groups.begin(); pair != groups.end(); pair++)
+    {
+      ints group = pair->second;
+      results.push_back(WordArray::make(group));
+    }  
+
+    return MixedArray::make(results);
   }
   else
   {

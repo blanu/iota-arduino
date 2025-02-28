@@ -22,6 +22,8 @@ Storage first(Storage i);
 Storage floor(Storage i);
 Storage format(Storage i);
 Storage gradeDown(Storage i);
+Storage gradeUp(Storage i);
+Storage group(Storage i);
 Storage negate(Storage i);
 Storage reciprocal(Storage i);
 Storage reverse(Storage i);
@@ -315,6 +317,7 @@ class List
     static Storage floor_impl(Storage i);
     static Storage gradeDown_impl(Storage i);
     static Storage gradeUp_impl(Storage i);
+    static Storage group_impl(Storage i);
     static Storage negate_impl(Storage i);    
     static Storage not_impl(Storage i);
     static Storage reciprocal_impl(Storage i);    
@@ -469,6 +472,7 @@ class IotaString
     static Storage first_impl(Storage i);
     static Storage gradeDown_impl(Storage i);
     static Storage gradeUp_impl(Storage i);
+    static Storage group_impl(Storage i);
     static Storage reverse_impl(Storage i);    
     static Storage size_impl(Storage i);    
 

@@ -9,6 +9,137 @@
 #include "squeeze.h"
 #include "error.h"
 
+bool Storage::operator==(const Storage& other) const
+{
+  if(o != other.o)
+  {
+    return 0;
+  }
+
+  if(t != other.t)
+  {
+    return 0;
+  }
+
+  if(std::holds_alternative<int>(i))
+  {
+    if(std::holds_alternative<int>(other.i))
+    {
+      int x = std::get<int>(i);
+      int y = std::get<int>(other.i);
+
+      return x == y;
+    }
+    else
+    {
+      return 0;
+    }
+  }
+  else if (std::holds_alternative<float>(i))
+  {
+    if(std::holds_alternative<float>(other.i))
+    {
+      float x = std::get<float>(i);
+      float y = std::get<float>(other.i);
+
+      return x == y;
+    }
+    else
+    {
+      return 0;
+    }
+  }
+  else if(std::holds_alternative<ints>(i))
+  {
+    if(std::holds_alternative<ints>(other.i))
+    {
+      ints xs = std::get<ints>(i);
+      ints ys = std::get<ints>(other.i);
+
+      if(xs.size() != ys.size())
+      {
+        return 0;
+      }
+
+      for(int index = 0; index < xs.size(); index++)
+      {
+        if(xs[index] != ys[index])
+        {
+          return 0;
+        }
+      }
+
+      return 1;
+    }
+    else
+    {
+      return 0;
+    }
+  }
+  else if(std::holds_alternative<floats>(i))
+  {
+    if(std::holds_alternative<floats>(other.i))
+    {
+      floats xs = std::get<floats>(i);
+      floats ys = std::get<floats>(other.i);
+
+      if(xs.size() != ys.size())
+      {
+        return 0;
+      }
+
+      for(int index = 0; index < xs.size(); index++)
+      {
+        if(xs[index] != ys[index])
+        {
+          return 0;
+        }
+      }
+
+      return 1;
+    }
+    else
+    {
+      return 0;
+    }
+  }
+  else if(std::holds_alternative<mixed>(i))
+  {
+    if(std::holds_alternative<mixed>(other.i))
+    {
+      mixed xs = std::get<mixed>(i);
+      mixed ys = std::get<mixed>(other.i);
+
+      if(xs.size() != ys.size())
+      {
+        return 0;
+      }
+
+      for(int index = 0; index < xs.size(); index++)
+      {
+        if(xs[index] == ys[index])
+        {
+          continue;
+        }
+        else
+        {
+          return 0;
+        }
+      }
+
+      return 1;
+    }
+    else
+    {
+      return 0;
+    }
+  }
+  else
+  {
+    return 0;
+  }
+}
+
 Storage Storage::identity(Storage i)
 {
   return i;
