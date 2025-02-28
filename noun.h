@@ -478,6 +478,7 @@ class IotaString
     static Storage gradeDown_impl(Storage i);
     static Storage gradeUp_impl(Storage i);
     static Storage group_impl(Storage i);
+    static Storage not_impl(Storage i);
     static Storage reverse_impl(Storage i);    
     static Storage size_impl(Storage i);    
 
@@ -492,6 +493,7 @@ class IotaString
 
     static Storage match_impl(Storage i, Storage x);
     static Storage more_string(Storage i, Storage x);
+    static Storage rotate_integer(Storage i, Storage x);
 
     static Storage split_integer(Storage i, Storage x);
     static Storage split_integers(Storage i, Storage x);
@@ -506,6 +508,36 @@ class IotaString
     // Dyadic Adverbs
 
     // Serialization
+    static maybe<bytes> to_bytes(Storage i);
+    static maybe<Storage> from_bytes(bytes bs, int t);
+    static void to_conn(ReliableConnection conn, Storage i);
+    static maybe<Storage> from_conn(ReliableConnection conn, int t);
+};
+
+class Dictionary
+{
+  public:
+    // Initialize dispatch table
+    static void initialize();
+
+    static Storage make(mixed i);
+    static Storage makeEmpty();
+
+    // Monads
+
+    // // Dyads
+    // static Storage drop_impl(Storage i, Storage x);
+    // static Storage equal_impl(Storage i, Storage x);
+    // static Storage find_impl(Storage i, Storage x);
+    // static Storage join_impl(Storage i, Storage x);
+    // static Storage match_impl(Storage i, Storage x);
+    
+    // // Monadic Adverbs
+    // static Storage each_impl(Storage i, Storage f);
+
+    // // Dyadic Adverbs
+
+    // // Serialization
     static maybe<bytes> to_bytes(Storage i);
     static maybe<Storage> from_bytes(bytes bs, int t);
     static void to_conn(ReliableConnection conn, Storage i);
