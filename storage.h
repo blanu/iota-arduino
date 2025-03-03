@@ -135,7 +135,8 @@ class Word
 class Float
 {
   public:
-    static constexpr float tolerance = 1e-14f;
+    static constexpr float tolerance = 1e-14f; // for match
+    static constexpr float precision = 6; // for format
 
     static maybe<Storage> from_bytes(bytes data, int o);
     static maybe<bytes> to_bytes(Storage storage);

@@ -4,6 +4,9 @@
 #include <variant>
 #include <algorithm>
 #include <unordered_set>
+#include <string>
+#include <limits>
+#include <cstdio>
 
 #include "noun.h"
 #include "squeeze.h"
@@ -48,7 +51,6 @@ Storage floor(Storage i)  // _a
   return Noun::dispatchMonad(i, Word::make(Monads::floor, NounType::BUILTIN_MONAD));
 }
 
-// FIXME - implement format
 Storage format(Storage i)  // $a
 {
   return Noun::dispatchMonad(i, Word::make(Monads::format, NounType::BUILTIN_MONAD));
@@ -149,6 +151,16 @@ Storage equal(Storage i, Storage x) // a=b
 Storage find(Storage i, Storage x) // a?b
 {
   return Noun::dispatchDyad(i, Word::make(Dyads::find, NounType::BUILTIN_DYAD), x);
+}
+
+Storage form(Storage i, Storage x) // a:$b
+{
+  return Noun::dispatchDyad(i, Word::make(Dyads::form, NounType::BUILTIN_DYAD), x);
+}
+
+Storage format2(Storage i, Storage x) // a$b
+{
+  return Noun::dispatchDyad(i, Word::make(Dyads::format2, NounType::BUILTIN_DYAD), x);
 }
 
 Storage index(Storage i, Storage x) // a@b
@@ -1459,6 +1471,7 @@ void Integer::initialize() {
   Noun::registerMonad(StorageType::WORD, NounType::INTEGER, Monads::expand, Integer::expand_impl);
   Noun::registerMonad(StorageType::WORD, NounType::INTEGER, Monads::enumerate, Integer::enumerate_impl);
   Noun::registerMonad(StorageType::WORD, NounType::INTEGER, Monads::first, Noun::identity1);
+  Noun::registerMonad(StorageType::WORD, NounType::INTEGER, Monads::format, Integer::format_impl);
   Noun::registerMonad(StorageType::WORD, NounType::INTEGER, Monads::floor, Noun::identity1);
   Noun::registerMonad(StorageType::WORD, NounType::INTEGER, Monads::negate, Integer::negate_impl);
   Noun::registerMonad(StorageType::WORD, NounType::INTEGER, Monads::inot, Integer::not_impl);
@@ -1483,6 +1496,9 @@ void Integer::initialize() {
   Noun::registerDyad(StorageType::WORD, NounType::INTEGER, Dyads::divide, StorageType::MIXED_ARRAY, NounType::LIST, Integer::divide_mixed);
 
   Noun::registerDyad(StorageType::WORD, NounType::INTEGER, Dyads::equal, StorageType::WORD, NounType::INTEGER, Integer::equal_impl);
+
+  Noun::registerDyad(StorageType::WORD, NounType::INTEGER, Dyads::format2, StorageType::WORD, NounType::INTEGER, Integer::format2_impl);
+  Noun::registerDyad(StorageType::WORD, NounType::INTEGER, Dyads::format2, StorageType::FLOAT, NounType::REAL, Integer::format2_impl);
 
   Noun::registerDyad(StorageType::WORD, NounType::INTEGER, Dyads::integerDivide, StorageType::WORD, NounType::INTEGER, Integer::integerDivide_impl);
 
@@ -1686,6 +1702,48 @@ Storage Integer::expand_impl(Storage i)
   {
     return Word::make(UNSUPPORTED_OBJECT, NounType::ERROR);
   }
+}
+
+Storage Integer::format_impl(Storage i)
+{
+  int unicode_minus = static_cast<int>('-');
+  int unicode_zero = static_cast<int>('0'); // '0' is 48 (decimal) in Unicode, '1' is 49, etc.
+
+  if (std::holds_alternative<int>(i.i))
+  {
+    int integer = std::get<int>(i.i);
+
+    if(integer == 0)
+    {
+      return IotaString::make({unicode_zero});      
+    }
+
+    ints results = ints();
+
+    int negative = 0;
+    if(integer < 0)
+    {
+      integer = -integer;
+      negative = 1;
+    }
+
+    while(integer > 0)
+    {
+      int digit = integer % 10;
+      // Unicode value is located at x + 45 for all x '0' to '9'
+      results.insert(results.begin(), digit + unicode_zero);
+      integer = integer / 10;
+    }      
+
+    if(negative)
+    {
+      results.insert(results.begin(), unicode_minus);
+    }
+
+    return IotaString::make(results);
+  }
+
+  return Word::make(UNSUPPORTED_OBJECT, NounType::ERROR);
 }
 
 Storage Integer::negate_impl(Storage i) {
@@ -2029,6 +2087,83 @@ Storage Integer::equal_impl(Storage i, Storage x)
       int xi = std::get<int>(x.i);
 
       return Word::make(ii == xi, NounType::INTEGER);
+    }
+  }
+
+  return Word::make(UNSUPPORTED_OBJECT, NounType::ERROR);
+}
+
+Storage Integer::format2_impl(Storage i, Storage x)
+{
+  int xi = 0;
+  if(std::holds_alternative<int>(x.i))
+  {
+    xi = std::get<int>(x.i);
+  }
+  else if(std::holds_alternative<float>(x.i))
+  {
+    float fi = std::get<float>(x.i);
+    xi = static_cast<int>(fi);
+  }
+  else
+  {
+    return Word::make(UNSUPPORTED_OBJECT, NounType::ERROR);
+  }
+
+  Storage formatted = format(i);
+  if(formatted.o == NounType::ERROR)
+  {
+    return formatted;
+  }
+
+  if(xi == 0)
+  {
+    return formatted;
+  }
+  else if(xi > 0)
+  {
+    if(std::holds_alternative<ints>(formatted.i))
+    {
+      ints characters = std::get<ints>(formatted.i);
+
+      if(xi <= characters.size())
+      {
+        return formatted;
+      }
+      else
+      {
+        int difference = xi - characters.size();
+        for(int index = 0; index < difference; index++)
+        {
+          characters.push_back(static_cast<int>(' '));
+        }
+
+        return IotaString::make(characters);
+      }
+    }
+  }
+  else if(xi < 0)
+  {
+    xi = -xi;
+
+    if(std::holds_alternative<ints>(formatted.i))
+    {
+      ints characters = std::get<ints>(formatted.i);
+
+      if(xi <= characters.size())
+      {
+        return formatted;
+      }
+      else
+      {
+        int difference = xi - characters.size();
+        for(int index = 0; index < difference; index++)
+        {
+          characters.insert(characters.begin(), static_cast<int>(' '));
+        }
+
+        return IotaString::make(characters);
+      }
     }
   }
 
@@ -3323,8 +3458,7 @@ void Real::initialize() {
   Noun::registerMonad(StorageType::FLOAT, NounType::REAL, Monads::enclose, Real::enclose_impl);
   Noun::registerMonad(StorageType::FLOAT, NounType::REAL, Monads::first, Noun::identity1);
   Noun::registerMonad(StorageType::FLOAT, NounType::REAL, Monads::floor, Real::floor_impl);
-  // FIXME - format
-  // FIXME - group
+  Noun::registerMonad(StorageType::FLOAT, NounType::REAL, Monads::format, Real::format_impl);
   Noun::registerMonad(StorageType::FLOAT, NounType::REAL, Monads::negate, Real::negate_impl);
   Noun::registerMonad(StorageType::FLOAT, NounType::REAL, Monads::inot, Real::not_impl);
   Noun::registerMonad(StorageType::FLOAT, NounType::REAL, Monads::reciprocal, Real::reciprocal_impl);
@@ -3349,6 +3483,9 @@ void Real::initialize() {
   Noun::registerDyad(StorageType::FLOAT, NounType::REAL, Dyads::join, StorageType::MIXED_ARRAY, NounType::LIST, Noun::prepend);
   Noun::registerDyad(StorageType::FLOAT, NounType::REAL, Dyads::join, StorageType::WORD, NounType::CHARACTER, Noun::join_scalar);
   Noun::registerDyad(StorageType::FLOAT, NounType::REAL, Dyads::join, StorageType::WORD_ARRAY, NounType::STRING, Noun::join_scalar);
+
+  Noun::registerDyad(StorageType::FLOAT, NounType::REAL, Dyads::format2, StorageType::WORD, NounType::INTEGER, Real::format2_impl);
+  Noun::registerDyad(StorageType::FLOAT, NounType::REAL, Dyads::format2, StorageType::FLOAT, NounType::REAL, Real::format2_impl);
 
   Noun::registerDyad(StorageType::FLOAT, NounType::REAL, Dyads::less, StorageType::WORD, NounType::INTEGER, Real::less_integer);
   Noun::registerDyad(StorageType::FLOAT, NounType::REAL, Dyads::less, StorageType::FLOAT, NounType::REAL, Real::less_real);
@@ -3511,6 +3648,40 @@ Storage Real::floor_impl(Storage i)
   {
     return Word::make(UNSUPPORTED_OBJECT, NounType::ERROR);
   }
+}
+
+Storage Real::format_impl(Storage i)
+{
+  if(std::holds_alternative<float>(i.i))
+  {
+    float fi = std::get<float>(i.i);
+
+    // This code prints a float with the minimum number of digits necessary to not lose precision
+    std::vector<char> buffer = std::vector<char>(256);
+    int formattedLength = std::snprintf(buffer.data(), buffer.size(), "%.*g", std::numeric_limits<double>::max_digits10, fi);
+    std::string s = std::string(buffer.data());
+
+    ints results = ints();
+    int needDecimal = 1;
+    for(char c : s)
+    {
+      results.push_back(static_cast<int>(c));
+      if(c == '.')
+      {
+        needDecimal = 0;
+      }
+    }
+
+    if(needDecimal)
+    {
+      results.push_back(static_cast<int>('.'));
+      results.push_back(static_cast<int>('0'));
+    }
+
+    return IotaString::make(results);
+  }
+
+  return Word::make(UNSUPPORTED_OBJECT, NounType::ERROR);
 }
 
 Storage Real::negate_impl(Storage i) {
@@ -3699,6 +3870,157 @@ Storage Real::divide_mixed(Storage i, Storage x)
       }
 
       return FloatArray::make(results, NounType::LIST);
+    }
+  }
+
+  return Word::make(UNSUPPORTED_OBJECT, NounType::ERROR);
+}
+
+Storage Real::format2_impl(Storage i, Storage x)
+{
+  Storage formatted = format(i);
+  if(formatted.o == NounType::ERROR)
+  {
+    return formatted;
+  }
+
+  if(std::holds_alternative<int>(x.i))
+  {  
+    int xi = std::get<int>(x.i);
+
+    if(xi == 0)
+    {
+      return formatted;
+    }
+    else if(xi > 0)
+    {
+      if(std::holds_alternative<ints>(formatted.i))
+      {
+        ints characters = std::get<ints>(formatted.i);
+
+        if(xi <= characters.size())
+        {
+          return formatted;
+        }
+        else
+        {
+          int difference = xi - characters.size();
+          for(int index = 0; index < difference; index++)
+          {
+            characters.push_back((int)' ');
+          }
+
+          return IotaString::make(characters);
+        }
+      }
+    }
+    else if(xi < 0)
+    {
+      xi = -xi;
+
+      if(std::holds_alternative<ints>(formatted.i))
+      {
+        ints characters = std::get<ints>(formatted.i);
+
+        if(xi <= characters.size())
+        {
+          return formatted;
+        }
+        else
+        {
+          int difference = xi - characters.size();
+          for(int index = 0; index < difference; index++)
+          {
+            characters.insert(characters.begin(), (int)' ');
+          }
+
+          return IotaString::make(characters);
+        }
+      }
+    }
+  }
+  else if(std::holds_alternative<float>(x.i))
+  {
+    float fi = std::get<float>(x.i);
+
+    // We can ignore the sign on float format parameters
+    int negative = 0;
+    if(fi < 0)
+    {
+      fi = -fi;
+      negative = 1;
+    }
+
+    int integerPartTarget = static_cast<int>(fi);
+    int fractionalPartTarget = static_cast<int>((fi - integerPartTarget) * powf(10, Float::precision));
+    while((fractionalPartTarget != 0) && (fractionalPartTarget % 10 == 0))
+    {
+      fractionalPartTarget = fractionalPartTarget / 10;
+    }
+
+    if((integerPartTarget == 0) && (fractionalPartTarget == 0))
+    {
+      return formatted;
+    }
+    else if(fractionalPartTarget == 0)
+    {
+      if(negative)
+      {
+        return format2(i, Integer::make(-integerPartTarget));
+      }
+      else
+      {
+        return format2(i, Integer::make(integerPartTarget));
+      }
+    }
+  
+    if(std::holds_alternative<ints>(formatted.i))
+    {
+      ints characters = std::get<ints>(formatted.i);
+
+      int decimalIndex = -1;
+      for(int index = 0; index < characters.size(); index++)
+      {
+        int character = characters[index];
+        if(character == static_cast<int>('.'))
+        {
+          decimalIndex = index;
+          break;
+        }
+      }
+
+      if(decimalIndex == -1)
+      {
+        return Word::make(UNSUPPORTED_OBJECT, NounType::ERROR);
+      }
+
+      ints integerPart = ints(characters.begin(), characters.begin() + decimalIndex);
+      ints fractionalPart = ints(characters.begin() + decimalIndex + 1, characters.end());
+
+      if(integerPart.size() < integerPartTarget)
+      {
+        int difference = integerPartTarget - integerPart.size();
+        for(int index = 0; index < difference; index++)
+        {
+          integerPart.insert(integerPart.begin(), static_cast<int>(' '));
+        }
+      }
+
+      if(fractionalPart.size() < fractionalPartTarget)
+      {
+        int difference = fractionalPartTarget - fractionalPart.size();
+        for(int index = 0; index < difference; index++)
+        {
+          fractionalPart.push_back(static_cast<int>('0'));
+        }
+      }
+
+      ints results = ints();
+      results.insert(results.end(), integerPart.begin(), integerPart.end());
+      results.insert(results.end(), static_cast<int>('.'));
+      results.insert(results.end(), fractionalPart.begin(), fractionalPart.end());
+
+      return IotaString::make(results);
     }
   }
 
@@ -4737,7 +5059,7 @@ void List::initialize() {
   Noun::registerMonad(StorageType::WORD_ARRAY, NounType::LIST, Monads::expand, List::expand_impl);
   Noun::registerMonad(StorageType::WORD_ARRAY, NounType::LIST, Monads::first, List::first_impl);
   Noun::registerMonad(StorageType::WORD_ARRAY, NounType::LIST, Monads::floor, Noun::identity1);
-  // FIXME - format
+  Noun::registerMonad(StorageType::WORD_ARRAY, NounType::LIST, Monads::format, List::format_impl);
   Noun::registerMonad(StorageType::WORD_ARRAY, NounType::LIST, Monads::gradeDown, List::gradeDown_impl);
   Noun::registerMonad(StorageType::WORD_ARRAY, NounType::LIST, Monads::gradeUp, List::gradeUp_impl);
   Noun::registerMonad(StorageType::WORD_ARRAY, NounType::LIST, Monads::group, List::group_impl);
@@ -4771,6 +5093,9 @@ void List::initialize() {
   Noun::registerDyad(StorageType::WORD_ARRAY, NounType::LIST, Dyads::find, StorageType::WORD_ARRAY, NounType::LIST, List::find_impl);
   Noun::registerDyad(StorageType::WORD_ARRAY, NounType::LIST, Dyads::find, StorageType::FLOAT_ARRAY, NounType::LIST, List::find_impl);
   Noun::registerDyad(StorageType::WORD_ARRAY, NounType::LIST, Dyads::find, StorageType::MIXED_ARRAY, NounType::LIST, List::find_impl);
+
+  Noun::registerDyad(StorageType::WORD_ARRAY, NounType::LIST, Dyads::format2, StorageType::WORD, NounType::INTEGER, List::format2_impl);
+  Noun::registerDyad(StorageType::WORD_ARRAY, NounType::LIST, Dyads::format2, StorageType::FLOAT, NounType::REAL, List::format2_impl);
 
   Noun::registerDyad(StorageType::WORD_ARRAY, NounType::LIST, Dyads::index, StorageType::WORD, NounType::INTEGER, List::index_impl);
   Noun::registerDyad(StorageType::WORD_ARRAY, NounType::LIST, Dyads::index, StorageType::WORD_ARRAY, NounType::LIST, List::index_impl);
@@ -4924,7 +5249,7 @@ void List::initialize() {
   Noun::registerMonad(StorageType::FLOAT_ARRAY, NounType::LIST, Monads::enclose, Noun::enclose_impl);
   Noun::registerMonad(StorageType::FLOAT_ARRAY, NounType::LIST, Monads::first, List::first_impl);
   Noun::registerMonad(StorageType::FLOAT_ARRAY, NounType::LIST, Monads::floor, List::floor_impl);
-  // FIXME - format
+  Noun::registerMonad(StorageType::FLOAT_ARRAY, NounType::LIST, Monads::format, List::format_impl);
   Noun::registerMonad(StorageType::FLOAT_ARRAY, NounType::LIST, Monads::gradeDown, List::gradeDown_impl);
   Noun::registerMonad(StorageType::FLOAT_ARRAY, NounType::LIST, Monads::gradeUp, List::gradeUp_impl);
   Noun::registerMonad(StorageType::FLOAT_ARRAY, NounType::LIST, Monads::group, List::group_impl);
@@ -4955,6 +5280,9 @@ void List::initialize() {
   Noun::registerDyad(StorageType::FLOAT_ARRAY, NounType::LIST, Dyads::find, StorageType::WORD_ARRAY, NounType::LIST, List::find_impl);
   Noun::registerDyad(StorageType::FLOAT_ARRAY, NounType::LIST, Dyads::find, StorageType::FLOAT_ARRAY, NounType::LIST, List::find_impl);
   Noun::registerDyad(StorageType::FLOAT_ARRAY, NounType::LIST, Dyads::find, StorageType::MIXED_ARRAY, NounType::LIST, List::find_impl);
+
+  Noun::registerDyad(StorageType::FLOAT_ARRAY, NounType::LIST, Dyads::format2, StorageType::WORD, NounType::INTEGER, List::format2_impl);
+  Noun::registerDyad(StorageType::FLOAT_ARRAY, NounType::LIST, Dyads::format2, StorageType::FLOAT, NounType::REAL, List::format2_impl);
 
   Noun::registerDyad(StorageType::FLOAT_ARRAY, NounType::LIST, Dyads::index, StorageType::WORD, NounType::INTEGER, List::index_impl);
   Noun::registerDyad(StorageType::FLOAT_ARRAY, NounType::LIST, Dyads::index, StorageType::WORD_ARRAY, NounType::LIST, List::index_impl);
@@ -5100,7 +5428,7 @@ void List::initialize() {
   Noun::registerMonad(StorageType::MIXED_ARRAY, NounType::LIST, Monads::enclose, Noun::enclose_impl);
   Noun::registerMonad(StorageType::MIXED_ARRAY, NounType::LIST, Monads::first, List::first_impl);
   Noun::registerMonad(StorageType::MIXED_ARRAY, NounType::LIST, Monads::floor, List::floor_impl);
-  // FIXME - format
+  Noun::registerMonad(StorageType::MIXED_ARRAY, NounType::LIST, Monads::format, List::format_impl);
   Noun::registerMonad(StorageType::MIXED_ARRAY, NounType::LIST, Monads::gradeDown, List::gradeDown_impl);
   Noun::registerMonad(StorageType::MIXED_ARRAY, NounType::LIST, Monads::gradeUp, List::gradeUp_impl);
   Noun::registerMonad(StorageType::MIXED_ARRAY, NounType::LIST, Monads::group, List::group_impl);
@@ -5132,6 +5460,9 @@ void List::initialize() {
   Noun::registerDyad(StorageType::MIXED_ARRAY, NounType::LIST, Dyads::find, StorageType::WORD_ARRAY, NounType::LIST, List::find_impl);
   Noun::registerDyad(StorageType::MIXED_ARRAY, NounType::LIST, Dyads::find, StorageType::FLOAT_ARRAY, NounType::LIST, List::find_impl);
   Noun::registerDyad(StorageType::MIXED_ARRAY, NounType::LIST, Dyads::find, StorageType::MIXED_ARRAY, NounType::LIST, List::find_impl);  
+
+  Noun::registerDyad(StorageType::MIXED_ARRAY, NounType::LIST, Dyads::format2, StorageType::WORD, NounType::INTEGER, List::format2_impl);
+  Noun::registerDyad(StorageType::MIXED_ARRAY, NounType::LIST, Dyads::format2, StorageType::FLOAT, NounType::REAL, List::format2_impl);
 
   Noun::registerDyad(StorageType::MIXED_ARRAY, NounType::LIST, Dyads::index, StorageType::WORD, NounType::INTEGER, List::index_impl);
   Noun::registerDyad(StorageType::MIXED_ARRAY, NounType::LIST, Dyads::index, StorageType::WORD_ARRAY, NounType::LIST, List::index_impl);
@@ -5461,6 +5792,31 @@ Storage List::floor_impl(Storage i)
   {
     return Word::make(UNSUPPORTED_OBJECT, NounType::ERROR);
   }
+}
+
+Storage List::format_impl(Storage i)
+{
+  Storage mi = Noun::mix(i);
+  if(std::holds_alternative<mixed>(mi.i))
+  {
+    mixed ms = std::get<mixed>(mi.i);
+
+    if(ms.empty())
+    {
+      return IotaString::make(ints({(int)'[', (int)']'}));
+    }
+
+    mixed results = mixed();
+
+    for(Storage y : ms)
+    {
+      results.push_back(format(y));
+    }
+
+    return MixedArray::make(results);
+  }
+
+  return Word::make(UNSUPPORTED_OBJECT, NounType::ERROR);
 }
 
 Storage List::gradeDown_impl(Storage i)
@@ -7973,6 +8329,31 @@ Storage List::find_impl(Storage i, Storage x)
 
       return WordArray::make(results, NounType::LIST);
     }
+  }
+
+  return Word::make(UNSUPPORTED_OBJECT, NounType::ERROR);
+}
+
+Storage List::format2_impl(Storage i, Storage x)
+{
+  Storage mi = Noun::mix(i);
+  if(std::holds_alternative<mixed>(mi.i))
+  {
+    mixed ms = std::get<mixed>(mi.i);
+
+    if(ms.empty())
+    {
+      return IotaString::make(ints({(int)'[', (int)']'}));
+    }
+
+    mixed results = mixed();
+
+    for(Storage y : ms)
+    {
+      results.push_back(format2(y, x));
+    }
+
+    return MixedArray::make(results);
   }
 
   return Word::make(UNSUPPORTED_OBJECT, NounType::ERROR);
@@ -13489,6 +13870,7 @@ void Character::initialize() {
   Noun::registerMonad(StorageType::WORD, NounType::CHARACTER, Monads::ichar, Noun::identity1);
   Noun::registerMonad(StorageType::WORD, NounType::CHARACTER, Monads::enclose, Character::enclose_impl);
   Noun::registerMonad(StorageType::WORD, NounType::CHARACTER, Monads::first, Noun::identity1);
+  Noun::registerMonad(StorageType::WORD, NounType::CHARACTER, Monads::format, Character::enclose_impl);
   Noun::registerMonad(StorageType::WORD, NounType::CHARACTER, Monads::inot, Noun::false1);
   Noun::registerMonad(StorageType::WORD, NounType::CHARACTER, Monads::reverse, Noun::identity1);
   Noun::registerMonad(StorageType::WORD, NounType::CHARACTER, Monads::shape, Noun::shape_scalar);
@@ -13500,6 +13882,9 @@ void Character::initialize() {
 
   // Dyads
   Noun::registerDyad(StorageType::WORD, NounType::CHARACTER, Dyads::equal, StorageType::WORD, NounType::CHARACTER, Character::equal_impl);
+
+  Noun::registerDyad(StorageType::WORD, NounType::CHARACTER, Dyads::format2, StorageType::WORD, NounType::INTEGER, Integer::format2_impl);
+  Noun::registerDyad(StorageType::WORD, NounType::CHARACTER, Dyads::format2, StorageType::FLOAT, NounType::REAL, Integer::format2_impl);
 
   Noun::registerDyad(StorageType::WORD, NounType::CHARACTER, Dyads::join, StorageType::WORD, NounType::INTEGER, Character::join_scalar);
   Noun::registerDyad(StorageType::WORD, NounType::CHARACTER, Dyads::join, StorageType::FLOAT, NounType::REAL, Character::join_scalar);
@@ -13582,6 +13967,8 @@ Storage Character::size_impl(Storage i) {
 }
 
 // Dyads
+
+
 // Join
 Storage Character::join_scalar(Storage i, Storage x)
 {
@@ -13749,6 +14136,7 @@ void IotaString::initialize() {
   Noun::registerMonad(StorageType::WORD_ARRAY, NounType::STRING, Monads::atom, IotaString::atom_impl);
   Noun::registerMonad(StorageType::WORD_ARRAY, NounType::STRING, Monads::enclose, Noun::enclose_impl);
   Noun::registerMonad(StorageType::WORD_ARRAY, NounType::STRING, Monads::first, IotaString::first_impl);
+  Noun::registerMonad(StorageType::WORD_ARRAY, NounType::STRING, Monads::format, Noun::identity1);
   Noun::registerMonad(StorageType::WORD_ARRAY, NounType::STRING, Monads::gradeDown, IotaString::gradeDown_impl);
   Noun::registerMonad(StorageType::WORD_ARRAY, NounType::STRING, Monads::gradeUp, IotaString::gradeUp_impl);
   Noun::registerMonad(StorageType::WORD_ARRAY, NounType::STRING, Monads::group, IotaString::group_impl);  
@@ -13764,6 +14152,17 @@ void IotaString::initialize() {
   Noun::registerDyad(StorageType::WORD_ARRAY, NounType::STRING, Dyads::equal, StorageType::WORD_ARRAY, NounType::STRING, IotaString::equal_impl);
   Noun::registerDyad(StorageType::WORD_ARRAY, NounType::STRING, Dyads::find, StorageType::WORD, NounType::CHARACTER, List::find_impl);
   Noun::registerDyad(StorageType::WORD_ARRAY, NounType::STRING, Dyads::find, StorageType::WORD_ARRAY, NounType::STRING, List::find_impl);
+
+  Noun::registerDyad(StorageType::WORD_ARRAY, NounType::STRING, Dyads::form, StorageType::WORD, NounType::INTEGER, IotaString::form_integer);
+  Noun::registerDyad(StorageType::WORD_ARRAY, NounType::STRING, Dyads::form, StorageType::FLOAT, NounType::REAL, IotaString::form_real);
+  Noun::registerDyad(StorageType::WORD_ARRAY, NounType::STRING, Dyads::form, StorageType::WORD_ARRAY, NounType::LIST, IotaString::form_list);
+  Noun::registerDyad(StorageType::WORD_ARRAY, NounType::STRING, Dyads::form, StorageType::FLOAT_ARRAY, NounType::LIST, IotaString::form_list);
+  Noun::registerDyad(StorageType::WORD_ARRAY, NounType::STRING, Dyads::form, StorageType::MIXED_ARRAY, NounType::LIST, IotaString::form_list);
+  Noun::registerDyad(StorageType::WORD_ARRAY, NounType::STRING, Dyads::form, StorageType::WORD, NounType::CHARACTER, IotaString::form_character);
+  Noun::registerDyad(StorageType::WORD_ARRAY, NounType::STRING, Dyads::form, StorageType::WORD_ARRAY, NounType::STRING, Noun::identity2);
+
+  Noun::registerDyad(StorageType::WORD_ARRAY, NounType::STRING, Dyads::format2, StorageType::WORD, NounType::INTEGER, Integer::format2_impl);
+  Noun::registerDyad(StorageType::WORD_ARRAY, NounType::STRING, Dyads::format2, StorageType::FLOAT, NounType::REAL, Integer::format2_impl);
 
   Noun::registerDyad(StorageType::WORD_ARRAY, NounType::STRING, Dyads::index, StorageType::WORD, NounType::INTEGER, IotaString::index_impl);
   Noun::registerDyad(StorageType::WORD_ARRAY, NounType::STRING, Dyads::index, StorageType::WORD_ARRAY, NounType::LIST, IotaString::index_impl);
@@ -14085,6 +14484,160 @@ Storage IotaString::equal_impl(Storage i, Storage x)
       }
 
       return Noun::true0();
+    }
+  }
+
+  return Word::make(UNSUPPORTED_OBJECT, NounType::ERROR);
+}
+
+Storage IotaString::form_integer(Storage i, Storage x)
+{
+  int unicode_minus = static_cast<int>('-');
+  int unicode_zero = static_cast<int>('0'); // '0' is 48 (decimal) in Unicode, '1' is 49, etc.
+
+  if(std::holds_alternative<ints>(i.i))
+  {
+    ints iis = std::get<ints>(i.i);
+
+    int first = 1;
+    int negative = 0;
+    int result = 0;
+    for(int y : iis)
+    {
+      if(first)
+      {        
+        first = 0;
+
+        if(y == unicode_minus)
+        {
+          negative = 1;
+          continue;
+        }
+      }
+
+      int digit = y - unicode_zero;
+      if((digit >= 0) && (digit <= 9))
+      {
+        result = result * 10;
+        result = result + digit;
+      }
+      else
+      {
+        return Word::make(INVALID_ARGUMENT, NounType::ERROR);
+      }
+    }
+
+    if(negative)
+    {
+      return Integer::make(-result);
+    }
+    else
+    {
+      return Integer::make(result);
+    }
+  }
+
+  return Word::make(UNSUPPORTED_OBJECT, NounType::ERROR);
+}
+
+Storage IotaString::form_real(Storage i, Storage x)
+{
+  int unicode_minus = static_cast<int>('-');
+  int unicode_zero = static_cast<int>('0'); // '0' is 48 (decimal) in Unicode, '1' is 49, etc.
+  int unicode_period = static_cast<int>('.');
+
+  if(std::holds_alternative<ints>(i.i))
+  {
+    ints iis = std::get<ints>(i.i);
+
+    int first = 1;
+    int negative = 0;
+    int decimalFound = 0;
+    int integerPart = 0;
+    int fractionalPart = 0;
+    float fractionalPower = 1;
+    for(int y : iis)
+    {
+      if(first)
+      {        
+        first = 0;
+
+        if(y == unicode_minus)
+        {
+          negative = 1;
+          continue;
+        }
+      }
+
+      if(y == unicode_period)
+      {
+        if(decimalFound)
+        {
+          return Word::make(INVALID_ARGUMENT, NounType::ERROR);
+        }
+        else
+        {        
+          decimalFound = 1;
+          continue;
+        }
+      }
+
+      int digit = y - unicode_zero;
+      if((digit >= 0) && (digit <= 9))
+      {
+        if(decimalFound)
+        {
+          fractionalPart = fractionalPart * 10;
+          fractionalPart = fractionalPart + digit;
+
+          fractionalPower = fractionalPower * 10.0;
+        }
+        else
+        {
+          integerPart = integerPart * 10;
+          integerPart = integerPart + digit;
+        }
+      }
+      else
+      {
+        return Word::make(INVALID_ARGUMENT, NounType::ERROR);
+      }
+    }
+
+    float integerFloat = static_cast<float>(integerPart);
+    float fractionalFloat = static_cast<float>(fractionalPart);
+    float result = integerFloat + (fractionalFloat / fractionalPower);
+
+    if(negative)
+    {
+      result = -result;
+    }
+
+    return Float::make(result);
+  }
+
+  return Word::make(UNSUPPORTED_OBJECT, NounType::ERROR);
+}
+
+Storage IotaString::form_list(Storage i, Storage x)
+{
+  return eachRight(Noun::mix(x), Word::make(Dyads::form, NounType::BUILTIN_DYAD), i);
+}
+
+Storage IotaString::form_character(Storage i, Storage x)
+{
+  if(std::holds_alternative<ints>(i.i))
+  {
+    ints iis = std::get<ints>(i.i);
+
+    if(iis.size() == 1)
+    {
+      int result = iis[0];
+      return Character::make(result);
+    }
+    else
+    {
+      return Word::make(INVALID_ARGUMENT, NounType::ERROR);
     }
   }
 

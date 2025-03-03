@@ -46,6 +46,8 @@ Storage divide(Storage i, Storage x);
 Storage drop(Storage i, Storage x);
 Storage equal(Storage i, Storage x);
 Storage find(Storage i, Storage x);
+Storage form(Storage i, Storage x);
+Storage format2(Storage i, Storage x);
 Storage index(Storage i, Storage x);
 Storage join(Storage i, Storage x);
 Storage less(Storage i, Storage x);
@@ -185,6 +187,7 @@ class Integer
     static Storage enumerate_impl(Storage i);
     static Storage expand_impl(Storage i);    
     static Storage floor_impl(Storage i);
+    static Storage format_impl(Storage i);
     static Storage negate_impl(Storage i);    
     static Storage not_impl(Storage i);
     static Storage reciprocal_impl(Storage i);    
@@ -201,6 +204,7 @@ class Integer
     static Storage divide_reals(Storage i, Storage x);
     static Storage divide_mixed(Storage i, Storage x);
     static Storage equal_impl(Storage i, Storage x);
+    static Storage format2_impl(Storage i, Storage x);
     static Storage integerDivide_impl(Storage i, Storage x);
     static Storage join_integer(Storage i, Storage x);
     static Storage prepend_to_integers(Storage i, Storage x);
@@ -255,6 +259,7 @@ class Real
 
     static Storage enclose_impl(Storage i);    
     static Storage floor_impl(Storage i);
+    static Storage format_impl(Storage i);
     static Storage negate_impl(Storage i);    
     static Storage not_impl(Storage i);
     static Storage reciprocal_impl(Storage i);    
@@ -267,6 +272,7 @@ class Real
     static Storage divide_integers(Storage i, Storage x);
     static Storage divide_reals(Storage i, Storage x);
     static Storage divide_mixed(Storage i, Storage x);
+    static Storage format2_impl(Storage i, Storage x);
     static Storage join_real(Storage i, Storage x);
     static Storage prepend_to_reals(Storage i, Storage x);
     static Storage less_integer(Storage i, Storage x);
@@ -318,6 +324,7 @@ class List
     static Storage expand_impl(Storage i);    
     static Storage first_impl(Storage i);
     static Storage floor_impl(Storage i);
+    static Storage format_impl(Storage i);
     static Storage gradeDown_impl(Storage i);
     static Storage gradeUp_impl(Storage i);
     static Storage group_impl(Storage i);
@@ -341,6 +348,7 @@ class List
     static Storage drop_impl(Storage i, Storage x);
     static Storage equal_impl(Storage i, Storage x);
     static Storage find_impl(Storage i, Storage x);
+    static Storage format2_impl(Storage i, Storage x);
     static Storage index_impl(Storage i, Storage x);
 
     // Join
@@ -439,6 +447,7 @@ class Character
 
     // Monads
     static Storage enclose_impl(Storage i);    
+    static Storage format_impl(Storage i);
     static Storage reverse_impl(Storage i);    
     static Storage size_impl(Storage i);    
 
@@ -475,6 +484,7 @@ class IotaString
     static Storage atom_impl(Storage i);    
     static Storage enclose_impl(Storage i);    
     static Storage first_impl(Storage i);
+    static Storage format_impl(Storage i);
     static Storage gradeDown_impl(Storage i);
     static Storage gradeUp_impl(Storage i);
     static Storage group_impl(Storage i);
@@ -484,6 +494,12 @@ class IotaString
 
     // Dyads
     static Storage equal_impl(Storage i, Storage x);
+
+    static Storage form_integer(Storage i, Storage x);
+    static Storage form_real(Storage i, Storage x);
+    static Storage form_list(Storage i, Storage x);
+    static Storage form_character(Storage i, Storage x);
+
     static Storage less_string(Storage i, Storage x);
     static Storage index_impl(Storage i, Storage x);
     
