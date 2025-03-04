@@ -5164,12 +5164,16 @@ void List::initialize() {
 
   Noun::registerDyad(StorageType::WORD_ARRAY, NounType::LIST, Dyads::equal, StorageType::WORD_ARRAY, NounType::LIST, List::equal_impl);
 
-  Noun::registerDyad(StorageType::WORD_ARRAY, NounType::LIST, Dyads::find, StorageType::WORD, NounType::INTEGER, List::find_impl);
-  Noun::registerDyad(StorageType::WORD_ARRAY, NounType::LIST, Dyads::find, StorageType::FLOAT, NounType::REAL, List::find_impl);
-  Noun::registerDyad(StorageType::WORD_ARRAY, NounType::LIST, Dyads::find, StorageType::WORD_ARRAY, NounType::LIST, List::find_impl);
-  Noun::registerDyad(StorageType::WORD_ARRAY, NounType::LIST, Dyads::find, StorageType::FLOAT_ARRAY, NounType::LIST, List::find_impl);
-  Noun::registerDyad(StorageType::WORD_ARRAY, NounType::LIST, Dyads::find, StorageType::MIXED_ARRAY, NounType::LIST, List::find_impl);
-
+  Noun::registerDyad(StorageType::WORD_ARRAY, NounType::LIST, Dyads::find, StorageType::WORD, NounType::INTEGER, List::find_integers_integer);
+  Noun::registerDyad(StorageType::WORD_ARRAY, NounType::LIST, Dyads::find, StorageType::FLOAT, NounType::REAL, List::find_integers_real);
+  Noun::registerDyad(StorageType::WORD_ARRAY, NounType::LIST, Dyads::find, StorageType::WORD_ARRAY, NounType::LIST, WordArray::nil2);
+  Noun::registerDyad(StorageType::WORD_ARRAY, NounType::LIST, Dyads::find, StorageType::FLOAT_ARRAY, NounType::LIST, WordArray::nil2);
+  Noun::registerDyad(StorageType::WORD_ARRAY, NounType::LIST, Dyads::find, StorageType::MIXED_ARRAY, NounType::LIST, WordArray::nil2);  
+  Noun::registerDyad(StorageType::WORD_ARRAY, NounType::LIST, Dyads::find, StorageType::WORD, NounType::CHARACTER, WordArray::nil2);
+  Noun::registerDyad(StorageType::WORD_ARRAY, NounType::LIST, Dyads::find, StorageType::WORD_ARRAY, NounType::STRING, WordArray::nil2);
+  Noun::registerDyad(StorageType::WORD_ARRAY, NounType::LIST, Dyads::find, StorageType::MIXED_ARRAY, NounType::DICTIONARY, WordArray::nil2);
+  Noun::registerDyad(StorageType::WORD_ARRAY, NounType::LIST, Dyads::find, StorageType::WORD_ARRAY, NounType::QUOTED_SYMBOL, WordArray::nil2);
+  
   Noun::registerDyad(StorageType::WORD_ARRAY, NounType::LIST, Dyads::format2, StorageType::WORD, NounType::INTEGER, List::format2_impl);
   Noun::registerDyad(StorageType::WORD_ARRAY, NounType::LIST, Dyads::format2, StorageType::FLOAT, NounType::REAL, List::format2_impl);
 
@@ -5352,12 +5356,16 @@ void List::initialize() {
 
   Noun::registerDyad(StorageType::FLOAT_ARRAY, NounType::LIST, Dyads::drop, StorageType::WORD, NounType::INTEGER, List::drop_impl);
 
-  Noun::registerDyad(StorageType::FLOAT_ARRAY, NounType::LIST, Dyads::find, StorageType::WORD, NounType::INTEGER, List::find_impl);
-  Noun::registerDyad(StorageType::FLOAT_ARRAY, NounType::LIST, Dyads::find, StorageType::FLOAT, NounType::REAL, List::find_impl);
-  Noun::registerDyad(StorageType::FLOAT_ARRAY, NounType::LIST, Dyads::find, StorageType::WORD_ARRAY, NounType::LIST, List::find_impl);
-  Noun::registerDyad(StorageType::FLOAT_ARRAY, NounType::LIST, Dyads::find, StorageType::FLOAT_ARRAY, NounType::LIST, List::find_impl);
-  Noun::registerDyad(StorageType::FLOAT_ARRAY, NounType::LIST, Dyads::find, StorageType::MIXED_ARRAY, NounType::LIST, List::find_impl);
-
+  Noun::registerDyad(StorageType::FLOAT_ARRAY, NounType::LIST, Dyads::find, StorageType::WORD, NounType::INTEGER, List::find_reals_integer);
+  Noun::registerDyad(StorageType::FLOAT_ARRAY, NounType::LIST, Dyads::find, StorageType::FLOAT, NounType::REAL, List::find_reals_real);
+  Noun::registerDyad(StorageType::FLOAT_ARRAY, NounType::LIST, Dyads::find, StorageType::WORD_ARRAY, NounType::LIST, WordArray::nil2);
+  Noun::registerDyad(StorageType::FLOAT_ARRAY, NounType::LIST, Dyads::find, StorageType::FLOAT_ARRAY, NounType::LIST, WordArray::nil2);
+  Noun::registerDyad(StorageType::FLOAT_ARRAY, NounType::LIST, Dyads::find, StorageType::MIXED_ARRAY, NounType::LIST, WordArray::nil2);  
+  Noun::registerDyad(StorageType::FLOAT_ARRAY, NounType::LIST, Dyads::find, StorageType::WORD, NounType::CHARACTER, WordArray::nil2);
+  Noun::registerDyad(StorageType::FLOAT_ARRAY, NounType::LIST, Dyads::find, StorageType::WORD_ARRAY, NounType::STRING, WordArray::nil2);
+  Noun::registerDyad(StorageType::FLOAT_ARRAY, NounType::LIST, Dyads::find, StorageType::MIXED_ARRAY, NounType::DICTIONARY, WordArray::nil2);
+  Noun::registerDyad(StorageType::FLOAT_ARRAY, NounType::LIST, Dyads::find, StorageType::WORD_ARRAY, NounType::QUOTED_SYMBOL, WordArray::nil2);
+  
   Noun::registerDyad(StorageType::FLOAT_ARRAY, NounType::LIST, Dyads::format2, StorageType::WORD, NounType::INTEGER, List::format2_impl);
   Noun::registerDyad(StorageType::FLOAT_ARRAY, NounType::LIST, Dyads::format2, StorageType::FLOAT, NounType::REAL, List::format2_impl);
 
@@ -5533,11 +5541,15 @@ void List::initialize() {
 
   Noun::registerDyad(StorageType::MIXED_ARRAY, NounType::LIST, Dyads::drop, StorageType::WORD, NounType::INTEGER, List::drop_impl);
 
-  Noun::registerDyad(StorageType::MIXED_ARRAY, NounType::LIST, Dyads::find, StorageType::WORD, NounType::INTEGER, List::find_impl);
-  Noun::registerDyad(StorageType::MIXED_ARRAY, NounType::LIST, Dyads::find, StorageType::FLOAT, NounType::REAL, List::find_impl);
-  Noun::registerDyad(StorageType::MIXED_ARRAY, NounType::LIST, Dyads::find, StorageType::WORD_ARRAY, NounType::LIST, List::find_impl);
-  Noun::registerDyad(StorageType::MIXED_ARRAY, NounType::LIST, Dyads::find, StorageType::FLOAT_ARRAY, NounType::LIST, List::find_impl);
-  Noun::registerDyad(StorageType::MIXED_ARRAY, NounType::LIST, Dyads::find, StorageType::MIXED_ARRAY, NounType::LIST, List::find_impl);  
+  Noun::registerDyad(StorageType::MIXED_ARRAY, NounType::LIST, Dyads::find, StorageType::WORD, NounType::INTEGER, List::find_mixed);
+  Noun::registerDyad(StorageType::MIXED_ARRAY, NounType::LIST, Dyads::find, StorageType::FLOAT, NounType::REAL, List::find_mixed);
+  Noun::registerDyad(StorageType::MIXED_ARRAY, NounType::LIST, Dyads::find, StorageType::WORD_ARRAY, NounType::LIST, List::find_mixed);
+  Noun::registerDyad(StorageType::MIXED_ARRAY, NounType::LIST, Dyads::find, StorageType::FLOAT_ARRAY, NounType::LIST, List::find_mixed);
+  Noun::registerDyad(StorageType::MIXED_ARRAY, NounType::LIST, Dyads::find, StorageType::MIXED_ARRAY, NounType::LIST, List::find_mixed);  
+  Noun::registerDyad(StorageType::MIXED_ARRAY, NounType::LIST, Dyads::find, StorageType::WORD, NounType::CHARACTER, List::find_mixed);
+  Noun::registerDyad(StorageType::MIXED_ARRAY, NounType::LIST, Dyads::find, StorageType::WORD_ARRAY, NounType::STRING, List::find_mixed);
+  Noun::registerDyad(StorageType::MIXED_ARRAY, NounType::LIST, Dyads::find, StorageType::MIXED_ARRAY, NounType::DICTIONARY, List::find_mixed);
+  Noun::registerDyad(StorageType::MIXED_ARRAY, NounType::LIST, Dyads::find, StorageType::WORD_ARRAY, NounType::QUOTED_SYMBOL, List::find_mixed);
 
   Noun::registerDyad(StorageType::MIXED_ARRAY, NounType::LIST, Dyads::format2, StorageType::WORD, NounType::INTEGER, List::format2_impl);
   Noun::registerDyad(StorageType::MIXED_ARRAY, NounType::LIST, Dyads::format2, StorageType::FLOAT, NounType::REAL, List::format2_impl);
@@ -7875,7 +7887,7 @@ Storage List::equal_impl(Storage i, Storage x)
   return Word::make(UNSUPPORTED_OBJECT, NounType::ERROR);
 }
 
-Storage List::find_impl(Storage i, Storage x)
+Storage List::find_integers_integer(Storage i, Storage x)
 {
   if(std::holds_alternative<ints>(i.i))
   {
@@ -7905,7 +7917,18 @@ Storage List::find_impl(Storage i, Storage x)
       
       return WordArray::make(results, NounType::LIST);
     }
-    else if(std::holds_alternative<float>(x.i))
+  }
+
+  return Word::make(UNSUPPORTED_OBJECT, NounType::ERROR);
+}
+
+Storage List::find_integers_real(Storage i, Storage x)
+{
+  if(std::holds_alternative<ints>(i.i))
+  {
+    ints iis = std::get<ints>(i.i);
+
+    if(std::holds_alternative<float>(x.i))
     {
       float fx = std::get<float>(x.i);
 
@@ -7929,149 +7952,14 @@ Storage List::find_impl(Storage i, Storage x)
       
       return WordArray::make(results, NounType::LIST);
     }
-    else if(std::holds_alternative<ints>(x.i))
-    {
-      ints xis = std::get<ints>(x.i);
-
-      ints results = ints();
-
-      for(int index = 0; index < iis.size(); index++)
-      {
-        if(xis.empty())
-        {
-          results.push_back(index + 1);
-          continue;
-        }
-
-        int found = true;
-        for(int xindex = 0; xindex < xis.size(); xindex++)
-        {
-          int offset = index + xindex;
-          if(offset >= iis.size())
-          {
-            found = false;
-            break;
-          }
-
-          Storage si = Word::make(iis[offset], NounType::INTEGER);
-          Storage sx = Word::make(xis[xindex], NounType::INTEGER);
-          Storage matched = match(si, sx);
-          if(matched.o == NounType::ERROR)
-          {
-            return matched;
-          }
-
-          if(!matched.truth())
-          {
-            found = false;
-            break;
-          }
-        }
-
-        if(found)
-        {
-          results.push_back(index + 1);
-        }
-      }
-
-      return WordArray::make(results, NounType::LIST);
-    }
-    else if(std::holds_alternative<floats>(x.i))
-    {
-      ints xis = std::get<ints>(x.i);
-
-      ints results = ints();
-
-      for(int index = 0; index < iis.size(); index++)
-      {
-        if(xis.empty())
-        {
-          results.push_back(index + 1);
-          continue;
-        }
-
-        int found = true;
-        for(int xindex = 0; xindex < xis.size(); xindex++)
-        {
-          int offset = index + xindex;
-          if(offset >= iis.size())
-          {
-            found = false;
-            break;
-          }
-
-          Storage si = Float::make(iis[offset], NounType::REAL);
-          Storage sx = Float::make(xis[xindex], NounType::REAL);
-          Storage matched = match(si, sx);
-          if(matched.o == NounType::ERROR)
-          {
-            return matched;
-          }
-
-          if(!matched.truth())
-          {
-            found = false;
-            break;
-          }
-        }
-
-        if(found)
-        {
-          results.push_back(index + 1);
-        }
-      }
-
-      return WordArray::make(results, NounType::LIST);
-    }
-    else if(std::holds_alternative<mixed>(x.i))
-    {
-      mixed xis = std::get<mixed>(x.i);
-
-      ints results = ints();
-
-      for(int index = 0; index < iis.size(); index++)
-      {
-        if(xis.empty())
-        {
-          results.push_back(index + 1);
-          continue;
-        }
-
-        int found = true;
-        for(int xindex = 0; xindex < xis.size(); xindex++)
-        {
-          int offset = index + xindex;
-          if(offset >= iis.size())
-          {
-            found = false;
-            break;
-          }
-
-          Storage si = Word::make(iis[offset], NounType::INTEGER);
-          Storage sx = xis[xindex];
-          Storage matched = match(si, sx);
-          if(matched.o == NounType::ERROR)
-          {
-            return matched;
-          }
-
-          if(!matched.truth())
-          {
-            found = false;
-            break;
-          }
-        }
-
-        if(found)
-        {
-          results.push_back(index + 1);
-        }
-      }
-
-      return WordArray::make(results, NounType::LIST);
-    }
   }
-  else if(std::holds_alternative<floats>(i.i))
+
+  return Word::make(UNSUPPORTED_OBJECT, NounType::ERROR);
+}
+
+Storage List::find_reals_integer(Storage i, Storage x)
+{
+  if(std::holds_alternative<floats>(i.i))
   {
     floats iis = std::get<floats>(i.i);
 
@@ -8100,7 +7988,18 @@ Storage List::find_impl(Storage i, Storage x)
       
       return WordArray::make(results, NounType::LIST);
     }
-    else if(std::holds_alternative<float>(x.i))
+  }
+
+  return Word::make(UNSUPPORTED_OBJECT, NounType::ERROR);
+}
+
+Storage List::find_reals_real(Storage i, Storage x)
+{
+  if(std::holds_alternative<floats>(i.i))
+  {
+    floats iis = std::get<floats>(i.i);
+
+    if(std::holds_alternative<float>(x.i))
     {
       float xi = std::get<float>(x.i);
 
@@ -8124,341 +8023,35 @@ Storage List::find_impl(Storage i, Storage x)
       
       return WordArray::make(results, NounType::LIST);
     }
-    else if(std::holds_alternative<ints>(x.i))
-    {
-      ints xis = std::get<ints>(x.i);
-
-      ints results = ints();
-
-      for(int index = 0; index < iis.size(); index++)
-      {
-        if(xis.empty())
-        {
-          results.push_back(index + 1);
-          continue;
-        }
-
-        int found = true;
-        for(int xindex = 0; xindex < xis.size(); xindex++)
-        {
-          int offset = index + xindex;
-          if(offset >= iis.size())
-          {
-            found = false;
-            break;
-          }
-
-          Storage si = Float::make(iis[offset], NounType::REAL);
-          Storage sx = Word::make(xis[xindex], NounType::INTEGER);
-          Storage matched = match(si, sx);
-          if(matched.o == NounType::ERROR)
-          {
-            return matched;
-          }
-
-          if(!matched.truth())
-          {
-            found = false;
-            break;
-          }
-        }
-
-        if(found)
-        {
-          results.push_back(index + 1);
-        }
-      }
-
-      return WordArray::make(results, NounType::LIST);
-    }
-    else if(std::holds_alternative<floats>(x.i))
-    {
-      ints xis = std::get<ints>(x.i);
-
-      ints results = ints();
-
-      for(int index = 0; index < iis.size(); index++)
-      {
-        if(xis.empty())
-        {
-          results.push_back(index + 1);
-          continue;
-        }
-
-        int found = true;
-        for(int xindex = 0; xindex < xis.size(); xindex++)
-        {
-          int offset = index + xindex;
-          if(offset >= iis.size())
-          {
-            found = false;
-            break;
-          }
-
-          Storage si = Float::make(iis[offset], NounType::REAL);
-          Storage sx = Float::make(xis[xindex], NounType::REAL);
-          Storage matched = match(si, sx);
-          if(matched.o == NounType::ERROR)
-          {
-            return matched;
-          }
-
-          if(!matched.truth())
-          {
-            found = false;
-            break;
-          }
-        }
-
-        if(found)
-        {
-          results.push_back(index + 1);
-        }
-      }
-
-      return WordArray::make(results, NounType::LIST);
-    }
-    else if(std::holds_alternative<mixed>(x.i))
-    {
-      mixed xis = std::get<mixed>(i.i);
-
-      ints results = ints();
-
-      for(int index = 0; index < iis.size(); index++)
-      {
-        if(xis.empty())
-        {
-          results.push_back(index + 1);
-          continue;
-        }
-
-        int found = true;
-        for(int xindex = 0; xindex < xis.size(); xindex++)
-        {
-          int offset = index + xindex;
-          if(offset >= iis.size())
-          {
-            found = false;
-            break;
-          }
-
-          Storage si = Float::make(iis[offset], NounType::REAL);
-          Storage sx = xis[xindex];
-          Storage matched = match(si, sx);
-          if(matched.o == NounType::ERROR)
-          {
-            return matched;
-          }
-
-          if(!matched.truth())
-          {
-            found = false;
-            break;
-          }
-        }
-
-        if(found)
-        {
-          results.push_back(index + 1);
-        }
-      }
-
-      return WordArray::make(results, NounType::LIST);
-    }
   }
-  else if(std::holds_alternative<mixed>(i.i))
+
+  return Word::make(UNSUPPORTED_OBJECT, NounType::ERROR);
+}
+
+Storage List::find_mixed(Storage i, Storage x)
+{
+  if(std::holds_alternative<mixed>(i.i))
   {
     mixed iis = std::get<mixed>(i.i);
 
-    if(std::holds_alternative<int>(x.i))
+    ints results = ints();
+
+    for(int index = 0; index < iis.size(); index++)
     {
-      int xi = std::get<int>(x.i);
-
-      ints results = ints();
-
-      for(int index = 0; index < iis.size(); index++)
+      Storage si = iis[index];
+      Storage matched = match(si, x);
+      if(matched.o == NounType::ERROR)
       {
-        Storage si = iis[index];
-        Storage sx = Word::make(xi, NounType::INTEGER);
-        Storage matched = match(si, sx);
-        if(matched.o == NounType::ERROR)
-        {
-          return matched;
-        }
-
-        if(matched.truth())
-        {
-          results.push_back(index + 1);
-        }
-      }
-      
-      return WordArray::make(results, NounType::LIST);
-    }
-    else if(std::holds_alternative<float>(x.i))
-    {
-      float xi = std::get<float>(x.i);
-
-      ints results = ints();
-
-      for(int index = 0; index < iis.size(); index++)
-      {
-        Storage si = iis[index];
-        Storage sx = Float::make(xi, NounType::REAL);
-        Storage matched = match(si, sx);
-        if(matched.o == NounType::ERROR)
-        {
-          return matched;
-        }
-
-        if(matched.truth())
-        {
-          results.push_back(index + 1);
-        }
-      }
-      
-      return WordArray::make(results, NounType::LIST);
-    }
-    else if(std::holds_alternative<ints>(x.i))
-    {
-      ints xis = std::get<ints>(x.i);
-
-      ints results = ints();
-
-      for(int index = 0; index < iis.size(); index++)
-      {
-        if(xis.empty())
-        {
-          results.push_back(index + 1);
-          continue;
-        }
-
-        int found = true;
-        for(int xindex = 0; xindex < xis.size(); xindex++)
-        {
-          int offset = index + xindex;
-          if(offset >= iis.size())
-          {
-            found = false;
-            break;
-          }
-
-          Storage si = iis[offset];
-          Storage sx = Word::make(xis[xindex], NounType::INTEGER);
-          Storage matched = match(si, sx);
-          if(matched.o == NounType::ERROR)
-          {
-            return matched;
-          }
-
-          if(!matched.truth())
-          {
-            found = false;
-            break;
-          }
-        }
-
-        if(found)
-        {
-          results.push_back(index + 1);
-        }
+        return matched;
       }
 
-      return WordArray::make(results, NounType::LIST);
-    }
-    else if(std::holds_alternative<floats>(x.i))
-    {
-      ints xis = std::get<ints>(x.i);
-
-      ints results = ints();
-
-      for(int index = 0; index < iis.size(); index++)
+      if(matched.truth())
       {
-        if(xis.empty())
-        {
-          results.push_back(index + 1);
-          continue;
-        }
-
-        int found = true;
-        for(int xindex = 0; xindex < xis.size(); xindex++)
-        {
-          int offset = index + xindex;
-          if(offset >= iis.size())
-          {
-            found = false;
-            break;
-          }
-
-          Storage si = iis[offset];
-          Storage sx = Float::make(xis[xindex], NounType::REAL);
-          Storage matched = match(si, sx);
-          if(matched.o == NounType::ERROR)
-          {
-            return matched;
-          }
-
-          if(!matched.truth())
-          {
-            found = false;
-            break;
-          }
-        }
-
-        if(found)
-        {
-          results.push_back(index + 1);
-        }
+        results.push_back(index + 1);
       }
-
-      return WordArray::make(results, NounType::LIST);
     }
-    else if(std::holds_alternative<mixed>(x.i))
-    {
-      mixed xis = std::get<mixed>(x.i);
-
-      ints results = ints();
-
-      for(int index = 0; index < iis.size(); index++)
-      {
-        if(xis.empty())
-        {
-          results.push_back(index + 1);
-          continue;
-        }
-
-        int found = true;
-        for(int xindex = 0; xindex < xis.size(); xindex++)
-        {
-          int offset = index + xindex;
-          if(offset >= iis.size())
-          {
-            found = false;
-            break;
-          }
-
-          Storage si = iis[offset];
-          Storage sx = xis[xindex];
-          Storage matched = match(si, sx);
-          if(matched.o == NounType::ERROR)
-          {
-            return matched;
-          }
-
-          if(!matched.truth())
-          {
-            found = false;
-            break;
-          }
-        }
-
-        if(found)
-        {
-          results.push_back(index + 1);
-        }
-      }
-
-      return WordArray::make(results, NounType::LIST);
-    }
+    
+    return WordArray::make(results, NounType::LIST);
   }
 
   return Word::make(UNSUPPORTED_OBJECT, NounType::ERROR);
@@ -14282,8 +13875,8 @@ void IotaString::initialize() {
 
   // Dyads
   Noun::registerDyad(StorageType::WORD_ARRAY, NounType::STRING, Dyads::equal, StorageType::WORD_ARRAY, NounType::STRING, IotaString::equal_impl);
-  Noun::registerDyad(StorageType::WORD_ARRAY, NounType::STRING, Dyads::find, StorageType::WORD, NounType::CHARACTER, List::find_impl);
-  Noun::registerDyad(StorageType::WORD_ARRAY, NounType::STRING, Dyads::find, StorageType::WORD_ARRAY, NounType::STRING, List::find_impl);
+  Noun::registerDyad(StorageType::WORD_ARRAY, NounType::STRING, Dyads::find, StorageType::WORD, NounType::CHARACTER, IotaString::find_character);
+  Noun::registerDyad(StorageType::WORD_ARRAY, NounType::STRING, Dyads::find, StorageType::WORD_ARRAY, NounType::STRING, IotaString::find_string);
 
   Noun::registerDyad(StorageType::WORD_ARRAY, NounType::STRING, Dyads::form, StorageType::WORD, NounType::INTEGER, IotaString::form_integer);
   Noun::registerDyad(StorageType::WORD_ARRAY, NounType::STRING, Dyads::form, StorageType::FLOAT, NounType::REAL, IotaString::form_real);
@@ -14617,6 +14210,93 @@ Storage IotaString::equal_impl(Storage i, Storage x)
       }
 
       return Noun::true0();
+    }
+  }
+
+  return Word::make(UNSUPPORTED_OBJECT, NounType::ERROR);
+}
+
+Storage IotaString::find_character(Storage i, Storage x)
+{
+  if(std::holds_alternative<ints>(i.i))
+  {
+    ints iis = std::get<ints>(i.i);
+
+    ints results = ints();
+
+    for(int index = 0; index < iis.size(); index++)
+    {
+      Storage si = Character::make(iis[index]);
+      Storage matched = match(si, x);
+      if(matched.o == NounType::ERROR)
+      {
+        return matched;
+      }
+
+      if(matched.truth())
+      {
+        results.push_back(index + 1);
+      }
+    }
+    
+    return WordArray::make(results, NounType::LIST);
+  }
+
+  return Word::make(UNSUPPORTED_OBJECT, NounType::ERROR);
+}
+
+Storage IotaString::find_string(Storage i, Storage x)
+{
+  if(std::holds_alternative<ints>(i.i))
+  {
+    ints iis = std::get<ints>(i.i);
+
+    if(std::holds_alternative<ints>(x.i))
+    {
+      ints xis = std::get<ints>(x.i);
+
+      ints results = ints();
+
+      for(int index = 0; index < iis.size(); index++)
+      {
+        if(xis.empty())
+        {
+          results.push_back(index + 1);
+          continue;
+        }
+
+        int found = true;
+        for(int xindex = 0; xindex < xis.size(); xindex++)
+        {
+          int offset = index + xindex;
+          if(offset >= iis.size())
+          {
+            found = false;
+            break;
+          }
+
+          Storage si = Character::make(iis[offset]);
+          Storage sx = Character::make(xis[xindex]);
+          Storage matched = match(si, sx);
+          if(matched.o == NounType::ERROR)
+          {
+            return matched;
+          }
+
+          if(!matched.truth())
+          {
+            found = false;
+            break;
+          }
+        }
+
+        if(found)
+        {
+          results.push_back(index + 1);
+        }
+      }
+
+      return WordArray::make(results, NounType::LIST);
     }
   }
 
@@ -15191,6 +14871,26 @@ void Dictionary::initialize()
   Noun::registerMonad(StorageType::MIXED_ARRAY, NounType::DICTIONARY, Monads::undefined, Noun::false1);
 
   // Dyads
+  Noun::registerDyad(StorageType::MIXED_ARRAY, NounType::DICTIONARY, Dyads::find, StorageType::WORD, NounType::INTEGER, Dictionary::find_impl);
+  Noun::registerDyad(StorageType::MIXED_ARRAY, NounType::DICTIONARY, Dyads::find, StorageType::FLOAT, NounType::REAL, Dictionary::find_impl);
+  Noun::registerDyad(StorageType::MIXED_ARRAY, NounType::DICTIONARY, Dyads::find, StorageType::WORD_ARRAY, NounType::LIST, Dictionary::find_impl);
+  Noun::registerDyad(StorageType::MIXED_ARRAY, NounType::DICTIONARY, Dyads::find, StorageType::FLOAT_ARRAY, NounType::LIST, Dictionary::find_impl);
+  Noun::registerDyad(StorageType::MIXED_ARRAY, NounType::DICTIONARY, Dyads::find, StorageType::MIXED_ARRAY, NounType::LIST, Dictionary::find_impl);
+  Noun::registerDyad(StorageType::MIXED_ARRAY, NounType::DICTIONARY, Dyads::find, StorageType::WORD, NounType::CHARACTER, Dictionary::find_impl);
+  Noun::registerDyad(StorageType::MIXED_ARRAY, NounType::DICTIONARY, Dyads::find, StorageType::WORD_ARRAY, NounType::STRING, Dictionary::find_impl);
+  Noun::registerDyad(StorageType::MIXED_ARRAY, NounType::DICTIONARY, Dyads::find, StorageType::MIXED_ARRAY, NounType::DICTIONARY, Dictionary::find_impl);
+  Noun::registerDyad(StorageType::MIXED_ARRAY, NounType::DICTIONARY, Dyads::find, StorageType::WORD_ARRAY, NounType::QUOTED_SYMBOL, Dictionary::find_impl);
+
+  Noun::registerDyad(StorageType::MIXED_ARRAY, NounType::DICTIONARY, Dyads::match, StorageType::WORD, NounType::INTEGER, Noun::false2);
+  Noun::registerDyad(StorageType::MIXED_ARRAY, NounType::DICTIONARY, Dyads::match, StorageType::FLOAT, NounType::REAL, Noun::false2);
+  Noun::registerDyad(StorageType::MIXED_ARRAY, NounType::DICTIONARY, Dyads::match, StorageType::WORD_ARRAY, NounType::LIST, Noun::false2);
+  Noun::registerDyad(StorageType::MIXED_ARRAY, NounType::DICTIONARY, Dyads::match, StorageType::FLOAT_ARRAY, NounType::LIST, Noun::false2);
+  Noun::registerDyad(StorageType::MIXED_ARRAY, NounType::DICTIONARY, Dyads::match, StorageType::MIXED_ARRAY, NounType::LIST, Noun::false2);
+  Noun::registerDyad(StorageType::MIXED_ARRAY, NounType::DICTIONARY, Dyads::match, StorageType::WORD, NounType::CHARACTER, Noun::false2);
+  Noun::registerDyad(StorageType::MIXED_ARRAY, NounType::DICTIONARY, Dyads::match, StorageType::WORD_ARRAY, NounType::STRING, Noun::false2);
+  Noun::registerDyad(StorageType::MIXED_ARRAY, NounType::DICTIONARY, Dyads::match, StorageType::MIXED_ARRAY, NounType::DICTIONARY, Dictionary::match_impl);
+  Noun::registerDyad(StorageType::MIXED_ARRAY, NounType::DICTIONARY, Dyads::match, StorageType::WORD_ARRAY, NounType::QUOTED_SYMBOL, Noun::false2);
+
   Noun::registerDyad(StorageType::MIXED_ARRAY, NounType::DICTIONARY, Dyads::rotate, StorageType::WORD, NounType::INTEGER, Noun::identity2);
 }
 
@@ -15202,6 +14902,82 @@ Storage Dictionary::make(mixed i)
 Storage Dictionary::makeEmpty()
 {
   return MixedArray::make(mixed(), NounType::DICTIONARY);
+}
+
+Storage Dictionary::find_impl(Storage i, Storage x)
+{
+  if(std::holds_alternative<mixed>(i.i))
+  {
+    mixed ms = std::get<mixed>(i.i);
+
+    if(ms.size() == 2)
+    {
+      Storage keys = ms[0];
+      Storage values = ms[1];
+
+      Storage indices = find(keys, x);
+
+      if(std::holds_alternative<ints>(indices.i))
+      {
+        ints integerIndices = std::get<ints>(indices.i);
+
+        if(integerIndices.size() == 0)
+        {
+          return QuotedSymbol::undefined();
+        }
+        else if(integerIndices.size() == 1)
+        {
+          int valueIndex = integerIndices.front();
+
+          Storage result = index(values, Integer::make(valueIndex));
+
+          if(result.o == NounType::ERROR)
+          {
+            return QuotedSymbol::undefined();
+          }
+
+          return result;
+        }        
+      }
+    }        
+  }
+
+  return Word::make(UNSUPPORTED_OBJECT, NounType::ERROR);
+}
+
+Storage Dictionary::match_impl(Storage i, Storage x)
+{
+  if(std::holds_alternative<mixed>(i.i))
+  {
+    mixed iis = std::get<mixed>(i.i);
+
+    if(std::holds_alternative<mixed>(x.i))
+    {
+      mixed xis = std::get<mixed>(x.i);
+
+      if(iis.size() != xis.size())
+      {
+        return Noun::false0();
+      }
+
+      for(int index = 0; index < iis.size(); index++)
+      {
+        Storage matched = match(iis[index], xis[index]);
+        if(matched.truth())
+        {
+          continue;
+        }
+        else
+        {
+          return Noun::false0();
+        }
+      }
+
+      return Noun::true0();
+    }
+  }
+
+  return Word::make(UNSUPPORTED_OBJECT, NounType::ERROR);
 }
 
 maybe<Storage> Dictionary::from_bytes(bytes bs, int t)
@@ -15444,15 +15220,26 @@ ints Symbol::asciiToUTF32(std::string ascii)
 
 void QuotedSymbol::initialize()
 {
-  // Monads
+  // Extension Monads
   Noun::registerMonad(StorageType::WORD_ARRAY, NounType::QUOTED_SYMBOL, Monads::evaluate, Noun::identity1);
   Noun::registerMonad(StorageType::WORD_ARRAY, NounType::QUOTED_SYMBOL, Monads::format, QuotedSymbol::format_impl);
   Noun::registerMonad(StorageType::WORD_ARRAY, NounType::QUOTED_SYMBOL, Monads::undefined, QuotedSymbol::undefined_impl);
 
   Noun::registerMonad(StorageType::WORD_ARRAY, NounType::QUOTED_SYMBOL, Monads::truth, Noun::true1);
 
+  // Dyads
   Noun::registerDyad(StorageType::WORD_ARRAY, NounType::QUOTED_SYMBOL, Dyads::format2, StorageType::WORD, NounType::INTEGER, Integer::format2_impl);
   Noun::registerDyad(StorageType::WORD_ARRAY, NounType::QUOTED_SYMBOL, Dyads::format2, StorageType::FLOAT, NounType::REAL, Integer::format2_impl);
+
+  Noun::registerDyad(StorageType::WORD_ARRAY, NounType::QUOTED_SYMBOL, Dyads::match, StorageType::WORD, NounType::INTEGER, Noun::false2);
+  Noun::registerDyad(StorageType::WORD_ARRAY, NounType::QUOTED_SYMBOL, Dyads::match, StorageType::FLOAT, NounType::REAL, Noun::false2);
+  Noun::registerDyad(StorageType::WORD_ARRAY, NounType::QUOTED_SYMBOL, Dyads::match, StorageType::WORD_ARRAY, NounType::LIST, Noun::false2);
+  Noun::registerDyad(StorageType::WORD_ARRAY, NounType::QUOTED_SYMBOL, Dyads::match, StorageType::FLOAT_ARRAY, NounType::LIST, Noun::false2);
+  Noun::registerDyad(StorageType::WORD_ARRAY, NounType::QUOTED_SYMBOL, Dyads::match, StorageType::MIXED_ARRAY, NounType::LIST, Noun::false2);
+  Noun::registerDyad(StorageType::WORD_ARRAY, NounType::QUOTED_SYMBOL, Dyads::match, StorageType::WORD, NounType::CHARACTER, Noun::false2);
+  Noun::registerDyad(StorageType::WORD_ARRAY, NounType::QUOTED_SYMBOL, Dyads::match, StorageType::WORD_ARRAY, NounType::STRING, Noun::false2);
+  Noun::registerDyad(StorageType::WORD_ARRAY, NounType::QUOTED_SYMBOL, Dyads::match, StorageType::MIXED_ARRAY, NounType::DICTIONARY, Noun::false2);
+  Noun::registerDyad(StorageType::WORD_ARRAY, NounType::QUOTED_SYMBOL, Dyads::match, StorageType::WORD_ARRAY, NounType::QUOTED_SYMBOL, IotaString::match_impl);
 }
 
 Storage QuotedSymbol::make(ints i)

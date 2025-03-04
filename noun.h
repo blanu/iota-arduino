@@ -349,7 +349,13 @@ class List
     static Storage divide_mixed(Storage i, Storage x);
     static Storage drop_impl(Storage i, Storage x);
     static Storage equal_impl(Storage i, Storage x);
-    static Storage find_impl(Storage i, Storage x);
+
+    static Storage find_integers_integer(Storage i, Storage x);
+    static Storage find_integers_real(Storage i, Storage x);
+    static Storage find_reals_integer(Storage i, Storage x);
+    static Storage find_reals_real(Storage i, Storage x);
+    static Storage find_mixed(Storage i, Storage x);
+
     static Storage format2_impl(Storage i, Storage x);
     static Storage index_impl(Storage i, Storage x);
 
@@ -497,6 +503,9 @@ class IotaString
     // Dyads
     static Storage equal_impl(Storage i, Storage x);
 
+    static Storage find_character(Storage i, Storage x);
+    static Storage find_string(Storage i, Storage x);
+
     static Storage form_integer(Storage i, Storage x);
     static Storage form_real(Storage i, Storage x);
     static Storage form_list(Storage i, Storage x);
@@ -547,9 +556,9 @@ class Dictionary
     // // Dyads
     // static Storage drop_impl(Storage i, Storage x);
     // static Storage equal_impl(Storage i, Storage x);
-    // static Storage find_impl(Storage i, Storage x);
+    static Storage find_impl(Storage i, Storage x);
     // static Storage join_impl(Storage i, Storage x);
-    // static Storage match_impl(Storage i, Storage x);
+    static Storage match_impl(Storage i, Storage x);
     
     // // Monadic Adverbs
     // static Storage each_impl(Storage i, Storage f);
@@ -593,6 +602,8 @@ class Symbol
 
     // Initialize dispatch table and symbol tables
     static void initialize();
+
+    static Storage match_impl(Storage i, Storage x);
 
     static Storage evaluate_impl(Storage i);
     static Storage truth_impl(Storage i);

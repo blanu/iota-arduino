@@ -163,6 +163,8 @@ class WordArray
 {
   public:
     static Storage nil();
+    static Storage nil1(Storage i);
+    static Storage nil2(Storage i, Storage x);
 
     static maybe<Storage> from_bytes(bytes data, int o);
     static bytes to_bytes(Storage storage);

@@ -336,6 +336,16 @@ Storage WordArray::nil()
   return WordArray::make(ints(), NounType::LIST);
 }
 
+Storage WordArray::nil1(Storage i)
+{
+  return WordArray::make(ints(), NounType::LIST);
+}
+
+Storage WordArray::nil2(Storage i, Storage x)
+{
+  return WordArray::make(ints(), NounType::LIST);
+}
+
 // Storage::from_bytes decodes a byte array into a WordArray object
 maybe<Storage> WordArray::from_bytes(bytes x, int o)
 {
