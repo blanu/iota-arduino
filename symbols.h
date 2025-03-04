@@ -25,6 +25,7 @@ class Monads
     static const int transpose = 16;
     static const int unique = 17;
     static const int count = 18;
+    static const int undefined = 67;
 
     static const int evaluate = 19;
     static const int erase = 20;

@@ -34,6 +34,7 @@ Storage size(Storage i);
 Storage transpose(Storage i);
 Storage unique(Storage i);
 Storage inot(Storage i);
+Storage undefined(Storage i);
 
 // Extension Monads
 
@@ -609,6 +610,7 @@ class QuotedSymbol
 
     // Monads
     static Storage format_impl(Storage i);
+    static Storage undefined_impl(Storage i);
 };
 
 // Note: MixedArray is defined in noun.h because it needs access to the Noun serialization API

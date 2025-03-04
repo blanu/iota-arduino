@@ -13,7 +13,6 @@
 #include "symbols.h"
 #include "error.h"
 #include "debug.h"
-#include "api.h"
 
 // Verbs
 // Monads
@@ -110,6 +109,11 @@ Storage transpose(Storage i) // +a
 Storage unique(Storage i) // ?a
 {
   return Noun::dispatchMonad(i, Word::make(Monads::unique, NounType::BUILTIN_MONAD));
+}
+
+Storage undefined(Storage i) // ?a
+{
+  return Noun::dispatchMonad(i, Word::make(Monads::undefined, NounType::BUILTIN_MONAD));
 }
 
 // Extension Monads
@@ -1483,6 +1487,7 @@ void Integer::initialize() {
   Noun::registerMonad(StorageType::WORD, NounType::INTEGER, Monads::reverse, Noun::identity1);
   Noun::registerMonad(StorageType::WORD, NounType::INTEGER, Monads::shape, Noun::shape_scalar);
   Noun::registerMonad(StorageType::WORD, NounType::INTEGER, Monads::size, Integer::size_impl);
+  Noun::registerMonad(StorageType::WORD, NounType::INTEGER, Monads::undefined, Noun::false1);
 
   // Extension Monads
   Noun::registerMonad(StorageType::WORD, NounType::INTEGER, Monads::evaluate, Noun::identity1);
@@ -3495,6 +3500,7 @@ void Real::initialize() {
   Noun::registerMonad(StorageType::FLOAT, NounType::REAL, Monads::reverse, Noun::identity1);
   Noun::registerMonad(StorageType::FLOAT, NounType::REAL, Monads::shape, Noun::shape_scalar);
   Noun::registerMonad(StorageType::FLOAT, NounType::REAL, Monads::size, Real::size_impl);
+  Noun::registerMonad(StorageType::FLOAT, NounType::REAL, Monads::undefined, Noun::false1);
 
   // Extension Monads
   Noun::registerMonad(StorageType::FLOAT, NounType::REAL, Monads::evaluate, Noun::identity1);
@@ -5139,6 +5145,7 @@ void List::initialize() {
   Noun::registerMonad(StorageType::WORD_ARRAY, NounType::LIST, Monads::shape, List::shape_impl);
   Noun::registerMonad(StorageType::WORD_ARRAY, NounType::LIST, Monads::size, List::size_impl);
   Noun::registerMonad(StorageType::WORD_ARRAY, NounType::LIST, Monads::unique, List::unique_impl);
+  Noun::registerMonad(StorageType::WORD_ARRAY, NounType::LIST, Monads::undefined, Noun::false1);
   
   // Extension Monads
   Noun::registerMonad(StorageType::WORD_ARRAY, NounType::LIST, Monads::evaluate, Noun::identity1);
@@ -5328,6 +5335,7 @@ void List::initialize() {
   Noun::registerMonad(StorageType::FLOAT_ARRAY, NounType::LIST, Monads::shape, List::shape_impl);
   Noun::registerMonad(StorageType::FLOAT_ARRAY, NounType::LIST, Monads::size, List::size_impl);
   Noun::registerMonad(StorageType::FLOAT_ARRAY, NounType::LIST, Monads::unique, List::unique_impl);
+  Noun::registerMonad(StorageType::FLOAT_ARRAY, NounType::LIST, Monads::undefined, Noun::false1);
 
   // Extension Monads
   Noun::registerMonad(StorageType::FLOAT_ARRAY, NounType::LIST, Monads::evaluate, Noun::identity1);
@@ -5508,6 +5516,7 @@ void List::initialize() {
   Noun::registerMonad(StorageType::MIXED_ARRAY, NounType::LIST, Monads::size, List::size_impl);
   Noun::registerMonad(StorageType::MIXED_ARRAY, NounType::LIST, Monads::transpose, List::transpose_impl);
   Noun::registerMonad(StorageType::MIXED_ARRAY, NounType::LIST, Monads::unique, List::unique_impl);
+  Noun::registerMonad(StorageType::MIXED_ARRAY, NounType::LIST, Monads::undefined, Noun::false1);
 
   // Extension Monads
   Noun::registerMonad(StorageType::MIXED_ARRAY, NounType::LIST, Monads::evaluate, Noun::identity1);
@@ -13996,6 +14005,7 @@ void Character::initialize() {
   Noun::registerMonad(StorageType::WORD, NounType::CHARACTER, Monads::reverse, Noun::identity1);
   Noun::registerMonad(StorageType::WORD, NounType::CHARACTER, Monads::shape, Noun::shape_scalar);
   Noun::registerMonad(StorageType::WORD, NounType::CHARACTER, Monads::size, Character::size_impl);
+  Noun::registerMonad(StorageType::WORD, NounType::CHARACTER, Monads::undefined, Noun::false1);
 
   // Extension Monads
   Noun::registerMonad(StorageType::WORD, NounType::CHARACTER, Monads::evaluate, Noun::identity1);
@@ -14265,6 +14275,7 @@ void IotaString::initialize() {
   Noun::registerMonad(StorageType::WORD_ARRAY, NounType::STRING, Monads::reverse, IotaString::reverse_impl);
   Noun::registerMonad(StorageType::WORD_ARRAY, NounType::STRING, Monads::shape, List::shape_impl);
   Noun::registerMonad(StorageType::WORD_ARRAY, NounType::STRING, Monads::size, IotaString::size_impl);
+  Noun::registerMonad(StorageType::WORD_ARRAY, NounType::STRING, Monads::undefined, Noun::false1);
 
   // Extension Monads
   Noun::registerMonad(StorageType::WORD_ARRAY, NounType::STRING, Monads::evaluate, Noun::identity1);
@@ -15177,6 +15188,7 @@ void Dictionary::initialize()
   Noun::registerMonad(StorageType::MIXED_ARRAY, NounType::DICTIONARY, Monads::reverse, Noun::identity1);
   Noun::registerMonad(StorageType::MIXED_ARRAY, NounType::DICTIONARY, Monads::shape, Noun::false1);
   Noun::registerMonad(StorageType::MIXED_ARRAY, NounType::DICTIONARY, Monads::size, List::size_impl);
+  Noun::registerMonad(StorageType::MIXED_ARRAY, NounType::DICTIONARY, Monads::undefined, Noun::false1);
 
   // Dyads
   Noun::registerDyad(StorageType::MIXED_ARRAY, NounType::DICTIONARY, Dyads::rotate, StorageType::WORD, NounType::INTEGER, Noun::identity2);
@@ -15435,6 +15447,7 @@ void QuotedSymbol::initialize()
   // Monads
   Noun::registerMonad(StorageType::WORD_ARRAY, NounType::QUOTED_SYMBOL, Monads::evaluate, Noun::identity1);
   Noun::registerMonad(StorageType::WORD_ARRAY, NounType::QUOTED_SYMBOL, Monads::format, QuotedSymbol::format_impl);
+  Noun::registerMonad(StorageType::WORD_ARRAY, NounType::QUOTED_SYMBOL, Monads::undefined, QuotedSymbol::undefined_impl);
 
   Noun::registerMonad(StorageType::WORD_ARRAY, NounType::QUOTED_SYMBOL, Monads::truth, Noun::true1);
 
@@ -15462,6 +15475,27 @@ Storage QuotedSymbol::format_impl(Storage i)
     ints result = ints(std::get<ints>(i.i));
     result.insert(result.begin(), unicode_colon);
     return IotaString::make(result);
+  }
+
+  return Word::make(UNSUPPORTED_OBJECT, NounType::ERROR);
+}
+
+Storage QuotedSymbol::undefined_impl(Storage i)
+{
+  if(std::holds_alternative<ints>(i.i))
+  {
+    ints integers = std::get<ints>(i.i);
+
+    ints name = Symbol::integerToString[SymbolType::undefined];
+
+    if(integers == name)
+    {
+      return Noun::true0();
+    }
+    else
+    {
+      return Noun::false0();
+    }
   }
 
   return Word::make(UNSUPPORTED_OBJECT, NounType::ERROR);
