@@ -605,6 +605,7 @@ class QuotedSymbol
     static void initialize();
 
     static Storage make(ints i);
+    static Storage undefined();
 
     // Monads
     static Storage format_impl(Storage i);

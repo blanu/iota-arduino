@@ -1945,7 +1945,7 @@ Storage Integer::divide_integer(Storage i, Storage x)
 
       if(xi == 0)
       {
-        return Word::make(DIVISION_BY_ZERO, NounType::ERROR);
+        return QuotedSymbol::undefined();
       }
 
       float fx = static_cast<float>(xi);
@@ -1971,7 +1971,7 @@ Storage Integer::divide_real(Storage i, Storage x)
 
       if(fx < Float::tolerance)
       {
-        return Word::make(DIVISION_BY_ZERO, NounType::ERROR);
+        return QuotedSymbol::undefined();
       }
 
       return Float::make(fi / fx, NounType::REAL);
@@ -1999,7 +1999,7 @@ Storage Integer::divide_integers(Storage i, Storage x)
 
         if(y == 0)
         {
-          return Word::make(DIVISION_BY_ZERO, NounType::ERROR);
+        return QuotedSymbol::undefined();
         }
 
         results.insert(results.end(), fi / fy);
@@ -2024,17 +2024,30 @@ Storage Integer::divide_reals(Storage i, Storage x)
       floats fis = std::get<floats>(x.i);
 
       floats results = floats();
+      mixed mixedResults = mixed();
+
       for(float fy : fis)
       {
         if(fy < Float::tolerance)
         {
-          return Word::make(DIVISION_BY_ZERO, NounType::ERROR);
+          mixedResults.push_back(QuotedSymbol::undefined());
         }
-
-        results.insert(results.end(), fi / fy);
+        else
+        {
+          float result = fi / fy;
+          results.push_back(result);
+          mixedResults.push_back(Real::make(result));
+        }
       }
 
-      return FloatArray::make(results, NounType::LIST);
+      if(mixedResults.size() == results.size())
+      {
+        return FloatArray::make(results);
+      }
+      else
+      {
+        return MixedArray::make(mixedResults);
+      }
     }
   }
 
@@ -2053,19 +2066,25 @@ Storage Integer::divide_mixed(Storage i, Storage x)
       mixed xis = std::get<mixed>(x.i);
 
       floats results = floats();
+      mixed mixedResults = mixed();
+
       for(Storage y : xis)
       {
         Storage result = divide(Float::make(fi, NounType::REAL), y);
 
-        if(result.t == NounType::ERROR)
+        if(result.o == NounType::ERROR)
         {
           return result;
         }
-
-        if(std::holds_alternative<float>(result.i))
+        else if(result.o == NounType::QUOTED_SYMBOL) // :undefined
+        {
+          mixedResults.push_back(result);
+        }
+        else if(std::holds_alternative<float>(result.i))
         {
           float fr = std::get<float>(result.i);
-          results.insert(results.end(), fr);
+          results.push_back(fr);
+          mixedResults.push_back(Real::make(fr));
         }
         else
         {
@@ -2073,7 +2092,14 @@ Storage Integer::divide_mixed(Storage i, Storage x)
         }
       }
 
-      return FloatArray::make(results, NounType::LIST);
+      if(mixedResults.size() == results.size())
+      {
+        return FloatArray::make(results);
+      }
+      else
+      {
+        return MixedArray::make(mixedResults);
+      }
     }
   }
 
@@ -2342,7 +2368,7 @@ Storage Integer::less_list(Storage i, Storage x)
       for(Storage y : xis)
       {
         Storage result = less(si, y);
-        if(result.t == NounType::ERROR)
+        if(result.o == NounType::ERROR)
         {
           return result;
         }
@@ -2508,7 +2534,7 @@ Storage Integer::max_list(Storage i, Storage x)
       for(Storage y : xis)
       {
         Storage result = less(si, y);
-        if(result.t == NounType::ERROR)
+        if(result.o == NounType::ERROR)
         {
           return result;
         }
@@ -2636,7 +2662,7 @@ Storage Integer::min_list(Storage i, Storage x)
       for(Storage y : xis)
       {
         Storage result = more(si, y);
-        if(result.t == NounType::ERROR)
+        if(result.o == NounType::ERROR)
         {
           return result;
         }
@@ -2738,7 +2764,7 @@ Storage Integer::minus_list(Storage i, Storage x)
       for(Storage y : xis)
       {
         Storage result = minus(si, y);
-        if(result.t == NounType::ERROR)
+        if(result.o == NounType::ERROR)
         {
           return result;
         }
@@ -2859,7 +2885,7 @@ Storage Integer::more_list(Storage i, Storage x)
       for(Storage y : xis)
       {
         Storage result = more(si, y);
-        if(result.t == NounType::ERROR)
+        if(result.o == NounType::ERROR)
         {
           return result;
         }
@@ -2961,7 +2987,7 @@ Storage Integer::plus_list(Storage i, Storage x)
       for(Storage y : xis)
       {
         Storage result = plus(si, y);
-        if(result.t == NounType::ERROR)
+        if(result.o == NounType::ERROR)
         {
           return result;
         }
@@ -3063,7 +3089,7 @@ Storage Integer::power_list(Storage i, Storage x)
       for(Storage y : xis)
       {
         Storage result = power(si, y);
-        if(result.t == NounType::ERROR)
+        if(result.o == NounType::ERROR)
         {
           return result;
         }
@@ -3135,7 +3161,7 @@ Storage Integer::remainder_mixed(Storage i, Storage x)
       for(Storage y : xis)
       {
         Storage result = remainder(si, y);
-        if(result.t == NounType::ERROR)
+        if(result.o == NounType::ERROR)
         {
           return result;
         }
@@ -3365,7 +3391,7 @@ Storage Integer::times_list(Storage i, Storage x)
       for(Storage y : xis)
       {
         Storage result = times(si, y);
-        if(result.t == NounType::ERROR)
+        if(result.o == NounType::ERROR)
         {
           return result;
         }
@@ -3750,7 +3776,7 @@ Storage Real::divide_integer(Storage i, Storage x)
 
       if(xi == 0)
       {
-        return Word::make(DIVISION_BY_ZERO, NounType::ERROR);
+        return QuotedSymbol::undefined();
       }
 
       float fx = static_cast<float>(xi);
@@ -3775,7 +3801,7 @@ Storage Real::divide_real(Storage i, Storage x)
 
       if(fx < Float::tolerance)
       {
-        return Word::make(DIVISION_BY_ZERO, NounType::ERROR);
+        return QuotedSymbol::undefined();
       }
 
       return Float::make(fi / fx, NounType::REAL);
@@ -3796,18 +3822,31 @@ Storage Real::divide_integers(Storage i, Storage x)
       ints xis = std::get<ints>(x.i);
 
       floats results = floats();
+      mixed mixedResults = mixed();
+
       for(int y : xis)
       {
         if(y == 0)
         {
-          return Word::make(DIVISION_BY_ZERO, NounType::ERROR);
+          mixedResults.push_back(QuotedSymbol::undefined());
         }
-
-        float fy = static_cast<float>(y);
-        results.insert(results.end(), fi / fy);
+        else
+        {
+          float fy = static_cast<float>(y);
+          float result = fi / fy;
+          results.push_back(result);
+          mixedResults.push_back(Real::make(result));
+        }
       }
 
-      return FloatArray::make(results, NounType::LIST);
+      if(mixedResults.size() == results.size())
+      {
+        return FloatArray::make(results);
+      }
+      else
+      {
+        return MixedArray::make(mixedResults);
+      }
     }
   }
 
@@ -3825,17 +3864,30 @@ Storage Real::divide_reals(Storage i, Storage x)
       floats fis = std::get<floats>(x.i);
 
       floats results = floats();
+      mixed mixedResults = mixed();
+
       for(float fy : fis)
       {
         if(fy < Float::tolerance)
         {
-          return Word::make(DIVISION_BY_ZERO, NounType::ERROR);
+          mixedResults.push_back(QuotedSymbol::undefined());
         }
-
-        results.insert(results.end(), fi / fy);
+        else
+        {
+          float result = fi / fy;
+          results.push_back(result);
+          mixedResults.push_back(Real::make(result));
+        }
       }
 
-      return FloatArray::make(results, NounType::LIST);
+      if(mixedResults.size() == results.size())
+      {
+        return FloatArray::make(results);
+      }
+      else
+      {
+        return MixedArray::make(mixedResults);
+      }
     }
   }
 
@@ -3844,7 +3896,7 @@ Storage Real::divide_reals(Storage i, Storage x)
 
 Storage Real::divide_mixed(Storage i, Storage x)
 {
-  if(std::holds_alternative<int>(i.i))
+  if(std::holds_alternative<float>(i.i))
   {
     float fi = std::get<float>(i.i);
 
@@ -3853,19 +3905,25 @@ Storage Real::divide_mixed(Storage i, Storage x)
       mixed xis = std::get<mixed>(x.i);
 
       floats results = floats();
+      mixed mixedResults = mixed();
+
       for(Storage y : xis)
       {
         Storage result = divide(Float::make(fi, NounType::REAL), y);
 
-        if(result.t == NounType::ERROR)
+        if(result.o == NounType::ERROR)
         {
           return result;
         }
-
-        if(std::holds_alternative<float>(result.i))
+        else if(result.o == NounType::QUOTED_SYMBOL) // :undefined
+        {
+          mixedResults.push_back(result);
+        }
+        else if(std::holds_alternative<float>(result.i))
         {
           float fr = std::get<float>(result.i);
-          results.insert(results.end(), fr);
+          results.push_back(fr);
+          mixedResults.push_back(Real::make(fr));
         }
         else
         {
@@ -3873,7 +3931,14 @@ Storage Real::divide_mixed(Storage i, Storage x)
         }
       }
 
-      return FloatArray::make(results, NounType::LIST);
+      if(mixedResults.size() == results.size())
+      {
+        return FloatArray::make(results);
+      }
+      else
+      {
+        return MixedArray::make(mixedResults);
+      }
     }
   }
 
@@ -4178,7 +4243,7 @@ Storage Real::less_list(Storage i, Storage x)
       for(Storage y : xis)
       {
         Storage result = less(si, y);
-        if(result.t == NounType::ERROR)
+        if(result.o == NounType::ERROR)
         {
           return result;
         }
@@ -4307,7 +4372,7 @@ Storage Real::max_list(Storage i, Storage x)
       for(Storage y : xis)
       {
         Storage result = less(si, y);
-        if(result.t == NounType::ERROR)
+        if(result.o == NounType::ERROR)
         {
           return result;
         }
@@ -4436,7 +4501,7 @@ Storage Real::min_list(Storage i, Storage x)
       for(Storage y : xis)
       {
         Storage result = more(si, y);
-        if(result.t == NounType::ERROR)
+        if(result.o == NounType::ERROR)
         {
           return result;
         }
@@ -4537,7 +4602,7 @@ Storage Real::minus_list(Storage i, Storage x)
       for(Storage y : xis)
       {
         Storage result = minus(si, y);
-        if(result.t == NounType::ERROR)
+        if(result.o == NounType::ERROR)
         {
           return result;
         }
@@ -4697,7 +4762,7 @@ Storage Real::more_list(Storage i, Storage x)
       for(Storage y : xis)
       {
         Storage result = more(si, y);
-        if(result.t == NounType::ERROR)
+        if(result.o == NounType::ERROR)
         {
           return result;
         }
@@ -4798,7 +4863,7 @@ Storage Real::plus_list(Storage i, Storage x)
       for(Storage y : xis)
       {
         Storage result = plus(si, y);
-        if(result.t == NounType::ERROR)
+        if(result.o == NounType::ERROR)
         {
           return result;
         }
@@ -4892,7 +4957,7 @@ Storage Real::power_list(Storage i, Storage x)
       for(Storage y : xis)
       {
         Storage result = power(si, y);
-        if(result.t == NounType::ERROR)
+        if(result.o == NounType::ERROR)
         {
           return result;
         }
@@ -4986,7 +5051,7 @@ Storage Real::times_list(Storage i, Storage x)
       for(Storage y : xis)
       {
         Storage result = times(si, y);
-        if(result.t == NounType::ERROR)
+        if(result.o == NounType::ERROR)
         {
           return result;
         }
@@ -7149,7 +7214,7 @@ Storage List::divide_integer(Storage i, Storage x)
 
       if(xi == 0)
       {
-        return Word::make(DIVISION_BY_ZERO, NounType::ERROR);
+        return QuotedSymbol::undefined();
       }
 
       floats results = floats();
@@ -7173,7 +7238,7 @@ Storage List::divide_integer(Storage i, Storage x)
 
       if(xi == 0)
       {
-        return Word::make(DIVISION_BY_ZERO, NounType::ERROR);
+        return QuotedSymbol::undefined();
       }
 
       float fxi = static_cast<float>(xi);
@@ -7197,19 +7262,26 @@ Storage List::divide_integer(Storage i, Storage x)
 
       if(xi == 0)
       {
-        return Word::make(DIVISION_BY_ZERO, NounType::ERROR);
+        return QuotedSymbol::undefined();
       }
 
       float fxi = static_cast<float>(xi);
 
       floats results = floats();
+      mixed mixedResults = mixed();
+
       for(Storage y : mis)
       {
         Storage result = divide(y, Float::make(fxi, NounType::REAL));
-        if(std::holds_alternative<float>(result.i))
+        if(result.o == NounType::QUOTED_SYMBOL)
+        {
+          mixedResults.push_back(result);
+        }
+        else if(std::holds_alternative<float>(result.i))
         {
           float fr = std::get<float>(result.i);
-          results.insert(results.end(), fr);
+          results.push_back(fr);
+          mixedResults.push_back(result);
         }
         else
         {
@@ -7217,7 +7289,14 @@ Storage List::divide_integer(Storage i, Storage x)
         }       
       }
 
-      return FloatArray::make(results, NounType::LIST);
+      if(mixedResults.size() == results.size())
+      {
+        return FloatArray::make(results);
+      }
+      else
+      {
+        return MixedArray::make(mixedResults);
+      }
     }
   }
 
@@ -7236,7 +7315,7 @@ Storage List::divide_real(Storage i, Storage x)
 
       if(xi < Float::tolerance)
       {
-        return Word::make(DIVISION_BY_ZERO, NounType::ERROR);
+        return QuotedSymbol::undefined();
       }
 
       floats results = floats();
@@ -7260,7 +7339,7 @@ Storage List::divide_real(Storage i, Storage x)
 
       if(fxi < Float::tolerance)
       {
-        return Word::make(DIVISION_BY_ZERO, NounType::ERROR);
+        return QuotedSymbol::undefined();
       }
 
       floats results = floats();
@@ -7289,7 +7368,7 @@ Storage List::divide_real(Storage i, Storage x)
       results.push_back(result);
     }
 
-    return MixedArray::make(results, NounType::LIST);
+    return MixedArray::make(results);
   }
 
   return Word::make(UNSUPPORTED_OBJECT, NounType::ERROR);
@@ -7311,21 +7390,33 @@ Storage List::divide_integers(Storage i, Storage x)
       }
 
       floats results = floats();
+      mixed mixedResults = mixed();
+
       for(int index = 0; index < iis.size(); index++)
       {
         if(xis[index] == 0)
         {
-          return Word::make(DIVISION_BY_ZERO, NounType::ERROR);
+          mixedResults.push_back(QuotedSymbol::undefined());
         }
+        else
+        {
+          float fi = static_cast<float>(iis[index]);
+          float fx = static_cast<float>(xis[index]);
 
-        float fi = static_cast<float>(iis[index]);
-        float fx = static_cast<float>(xis[index]);
-
-        float result = fi / fx;
-        results.push_back(result);
+          float result = fi / fx;
+          results.push_back(result);
+          mixedResults.push_back(Real::make(result));
+        }
       }
 
-      return FloatArray::make(results, NounType::LIST);
+      if(mixedResults.size() == results.size())
+      {
+        return FloatArray::make(results);
+      }
+      else
+      {
+        return MixedArray::make(mixedResults);
+      }
     }
   }
   else if(std::holds_alternative<floats>(i.i))
@@ -7342,21 +7433,33 @@ Storage List::divide_integers(Storage i, Storage x)
       }
 
       floats results = floats();
+      mixed mixedResults = mixed();
+
       for(int index = 0; index < iis.size(); index++)
       {
         if(xis[index] == 0)
         {
-          return Word::make(DIVISION_BY_ZERO, NounType::ERROR);
+          mixedResults.push_back(QuotedSymbol::undefined());
         }
+        else
+        {
+          float fi = iis[index];
+          float fx = static_cast<float>(xis[index]);
 
-        float fi = iis[index];
-        float fx = static_cast<float>(xis[index]);
-
-        float result = fi / fx;
-        results.push_back(result);
+          float result = fi / fx;
+          results.push_back(result);
+          mixedResults.push_back(Real::make(result));
+        }
       }
 
-      return FloatArray::make(results, NounType::LIST);
+      if(mixedResults.size() == results.size())
+      {
+        return FloatArray::make(results);
+      }
+      else
+      {
+        return MixedArray::make(mixedResults);
+      }
     }
   }
   else if(std::holds_alternative<mixed>(i.i))
@@ -7375,11 +7478,6 @@ Storage List::divide_integers(Storage i, Storage x)
       mixed results = mixed();
       for(int index = 0; index < iis.size(); index++)
       {
-        if(xis[index] == 0)
-        {
-          return Word::make(DIVISION_BY_ZERO, NounType::ERROR);
-        }
-
         Storage si = iis[index];
         Storage sx = Word::make(xis[index], NounType::INTEGER);
 
@@ -7415,21 +7513,33 @@ Storage List::divide_reals(Storage i, Storage x)
       }
 
       floats results = floats();
+      mixed mixedResults = mixed();
+
       for(int index = 0; index < iis.size(); index++)
       {
         if(xis[index] < Float::tolerance)
         {
-          return Word::make(DIVISION_BY_ZERO, NounType::ERROR);
+          mixedResults.push_back(QuotedSymbol::undefined());
         }
+        else
+        {
+          float fi = static_cast<float>(iis[index]);
+          float fx = xis[index];
 
-        float fi = static_cast<float>(iis[index]);
-        float fx = xis[index];
-
-        float result = fi / fx;
-        results.push_back(result);
+          float result = fi / fx;
+          results.push_back(result);
+          mixedResults.push_back(Real::make(result));
+        }
       }
 
-      return FloatArray::make(results, NounType::LIST);
+      if(mixedResults.size() == results.size())
+      {
+        return FloatArray::make(results);
+      }
+      else
+      {
+        return MixedArray::make(mixedResults);
+      }
     }
   }
   else if(std::holds_alternative<floats>(i.i))
@@ -7446,21 +7556,33 @@ Storage List::divide_reals(Storage i, Storage x)
       }
 
       floats results = floats();
+      mixed mixedResults = mixed();
+
       for(int index = 0; index < iis.size(); index++)
       {
         if(xis[index] < Float::tolerance)
         {
-          return Word::make(DIVISION_BY_ZERO, NounType::ERROR);
+          mixedResults.push_back(QuotedSymbol::undefined());
         }
+        else
+        {
+          float fi = iis[index];
+          float fx = xis[index];
 
-        float fi = iis[index];
-        float fx = xis[index];
-
-        float result = fi / fx;
-        results.push_back(result);
+          float result = fi / fx;
+          results.push_back(result);
+          mixedResults.push_back(Real::make(result));
+        }
       }
 
-      return FloatArray::make(results, NounType::LIST);
+      if(mixedResults.size() == results.size())
+      {
+        return FloatArray::make(results);
+      }
+      else
+      {
+        return MixedArray::make(mixedResults);
+      }
     }
   }
   else if(std::holds_alternative<mixed>(i.i))
@@ -7479,11 +7601,6 @@ Storage List::divide_reals(Storage i, Storage x)
       mixed results = mixed();
       for(int index = 0; index < iis.size(); index++)
       {
-        if(xis[index] < Float::tolerance)
-        {
-          return Word::make(DIVISION_BY_ZERO, NounType::ERROR);
-        }
-
         Storage si = iis[index];
         Storage sx = Float::make(xis[index], NounType::REAL);
 
@@ -7533,7 +7650,7 @@ Storage List::divide_mixed(Storage i, Storage x)
         results.push_back(result);
       }
 
-      return MixedArray::make(results, NounType::LIST);
+      return MixedArray::make(results);
     }
   }
   else if(std::holds_alternative<floats>(i.i))
@@ -7564,7 +7681,7 @@ Storage List::divide_mixed(Storage i, Storage x)
         results.push_back(result);
       }
 
-      return MixedArray::make(results, NounType::LIST);
+      return MixedArray::make(results);
     }
   }
   else if(std::holds_alternative<mixed>(i.i))
@@ -8347,7 +8464,7 @@ Storage List::format2_impl(Storage i, Storage x)
 
     if(ms.empty())
     {
-      return IotaString::make(ints({(int)'[', (int)']'}));
+      return QuotedSymbol::undefined();
     }
 
     mixed results = mixed();
@@ -15328,6 +15445,12 @@ void QuotedSymbol::initialize()
 Storage QuotedSymbol::make(ints i)
 {
   return WordArray::make(i, NounType::QUOTED_SYMBOL);
+}
+
+Storage QuotedSymbol::undefined()
+{
+  ints name = Symbol::integerToString[SymbolType::undefined];
+  return QuotedSymbol::make(name);
 }
 
 Storage QuotedSymbol::format_impl(Storage i)
