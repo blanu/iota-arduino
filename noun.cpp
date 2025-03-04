@@ -14255,16 +14255,15 @@ Storage IotaString::find_string(Storage i, Storage x)
     {
       ints xis = std::get<ints>(x.i);
 
+      if(xis.empty())
+      {
+        return enumerate(Integer::make(iis.size() + 1));
+      }
+
       ints results = ints();
 
       for(int index = 0; index < iis.size(); index++)
       {
-        if(xis.empty())
-        {
-          results.push_back(index + 1);
-          continue;
-        }
-
         int found = true;
         for(int xindex = 0; xindex < xis.size(); xindex++)
         {
