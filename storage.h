@@ -44,6 +44,7 @@ class NounType
     static const int EXPRESSION = 17;
     static const int TYPE = 18;
     static const int CONDITIONAL = 19;
+    static const int QUOTED_SYMBOL = 20;
 };
 
 class Storage;

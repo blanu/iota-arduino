@@ -8,6 +8,7 @@
 #include <tuple>
 #include <optional>
 #include <numeric>
+#include <string>
 
 #include "error.h"
 #include "storage.h"
@@ -84,9 +85,9 @@ Storage scanOverNeutral(Storage i, Storage f, Storage x);
 Storage scanWhileOne(Storage i, Storage f, Storage x);
 Storage whileOne(Storage i, Storage f, Storage x);
 
-using Symbol = int;
-using Specialization3 = std::tuple<Symbol, Symbol, Symbol>;
-using Specialization5 = std::tuple<Symbol, Symbol, Symbol, Symbol, Symbol>;
+using Type = int;
+using Specialization3 = std::tuple<Type, Type, Type>;
+using Specialization5 = std::tuple<Type, Type, Type, Type, Type>;
 using Monad = std::function<Storage(Storage)>;
 using Dyad = std::function<Storage(Storage,Storage)>;
 using Triad = std::function<Storage(Storage,Storage,Storage)>;
@@ -106,11 +107,11 @@ class Noun
     static Storage dispatchMonadicAdverb(Storage i, Storage f, Storage g);
     static Storage dispatchDyadicAdverb(Storage i, Storage f, Storage g, Storage x);
 
-    static void registerMonad(Symbol it, Symbol io, Symbol f, Storage (*m)(Storage));
-    static void registerDyad(Symbol it, Symbol io, Symbol f, Symbol xt, Symbol xo, Storage (*d)(Storage, Storage));
-    static void registerTriad(Symbol it, Symbol io, Symbol f, Symbol xt, Symbol xo, Storage (*t)(Storage, Storage, Storage));
-    static void registerMonadicAdverb(Symbol it, Symbol io, Symbol f, Storage (*a)(Storage, Storage));
-    static void registerDyadicAdverb(Symbol it, Symbol io, Symbol f, Symbol xt, Symbol xo, Storage (*a)(Storage, Storage, Storage));
+    static void registerMonad(Type it, Type io, Type f, Storage (*m)(Storage));
+    static void registerDyad(Type it, Type io, Type f, Type xt, Type xo, Storage (*d)(Storage, Storage));
+    static void registerTriad(Type it, Type io, Type f, Type xt, Type xo, Storage (*t)(Storage, Storage, Storage));
+    static void registerMonadicAdverb(Type it, Type io, Type f, Storage (*a)(Storage, Storage));
+    static void registerDyadicAdverb(Type it, Type io, Type f, Type xt, Type xo, Storage (*a)(Storage, Storage, Storage));
 
     // Monads
     static Storage enclose_impl(Storage i);
@@ -499,6 +500,7 @@ class IotaString
     static Storage form_real(Storage i, Storage x);
     static Storage form_list(Storage i, Storage x);
     static Storage form_character(Storage i, Storage x);
+    static Storage form_quoted_symbol(Storage i, Storage x);
 
     static Storage less_string(Storage i, Storage x);
     static Storage index_impl(Storage i, Storage x);
@@ -579,6 +581,33 @@ class Conditional
 
     static Storage evaluate_impl(Storage i);
     static Storage truth_impl(Storage i);
+};
+
+class Symbol
+{
+  public:
+    static std::unordered_map<int, ints> integerToString;
+    static std::unordered_map<ints, int, IntsHash> stringToInteger;
+    static std::unordered_map<int, Storage> values;
+
+    // Initialize dispatch table and symbol tables
+    static void initialize();
+
+    static Storage evaluate_impl(Storage i);
+    static Storage truth_impl(Storage i);
+
+    static ints asciiToUTF32(std::string ascii);
+};
+
+class QuotedSymbol
+{
+  public:
+    static void initialize();
+
+    static Storage make(ints i);
+
+    // Monads
+    static Storage format_impl(Storage i);
 };
 
 // Note: MixedArray is defined in noun.h because it needs access to the Noun serialization API

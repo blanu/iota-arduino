@@ -4,7 +4,6 @@
 #include "storage.h"
 #include "types.h"
 
-// SymbolType
 class SymbolType
 {
   public:
@@ -13,7 +12,7 @@ class SymbolType
     static const int y = 2;
     static const int z = 3;
     static const int f = 4;
-    static const int undefined = 5;
+    static const int undefined = 5; // If adding new symbols, undefined must also be the last symbol as it marks the end of the list of builtin symbols.
 };
 
 const int i = SymbolType::i;

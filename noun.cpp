@@ -13,6 +13,7 @@
 #include "symbols.h"
 #include "error.h"
 #include "debug.h"
+#include "api.h"
 
 // Verbs
 // Monads
@@ -339,6 +340,9 @@ void Noun::initialize() {
   IotaString::initialize();
   Dictionary::initialize();
   Expression::initialize();
+  Conditional::initialize();
+  Symbol::initialize();
+  QuotedSymbol::initialize();
 }
 
 // Dispatch
@@ -461,23 +465,23 @@ Storage Noun::dispatchDyadicAdverb(Storage i, Storage f, Storage g, Storage x)
 
 // Registration
 
-void Noun::registerMonad(Symbol it, Symbol io, Symbol f, Storage (*m)(Storage)) {
+void Noun::registerMonad(Type it, Type io, Type f, Storage (*m)(Storage)) {
   Noun::monads[Specialization3(it, io, f)] = m;
 }
 
-void Noun::registerDyad(Symbol it, Symbol io, Symbol f, Symbol xt, Symbol xo, Storage (*d)(Storage, Storage)) {
+void Noun::registerDyad(Type it, Type io, Type f, Type xt, Type xo, Storage (*d)(Storage, Storage)) {
   Noun::dyads[Specialization5(it, io, f, xt, xo)] = d;
 }
 
-void Noun::registerTriad(Symbol it, Symbol io, Symbol f, Symbol xt, Symbol xo, Storage (*t)(Storage, Storage, Storage)) {
+void Noun::registerTriad(Type it, Type io, Type f, Type xt, Type xo, Storage (*t)(Storage, Storage, Storage)) {
   Noun::triads[Specialization5(it, io, f, xt, xo)] = t;
 }
 
-void Noun::registerMonadicAdverb(Symbol it, Symbol io, Symbol f, Storage (*a)(Storage, Storage)) {
+void Noun::registerMonadicAdverb(Type it, Type io, Type f, Storage (*a)(Storage, Storage)) {
   Noun::monadicAdverbs[Specialization3(it, io, f)] = a;
 }
 
-void Noun::registerDyadicAdverb(Symbol it, Symbol io, Symbol f, Symbol xt, Symbol xo, Storage (*a)(Storage, Storage, Storage)) {
+void Noun::registerDyadicAdverb(Type it, Type io, Type f, Type xt, Type xo, Storage (*a)(Storage, Storage, Storage)) {
   Noun::dyadicAdverbs[Specialization5(it, io, f, xt, xo)] = a;
 }
 
@@ -14160,7 +14164,8 @@ void IotaString::initialize() {
   Noun::registerDyad(StorageType::WORD_ARRAY, NounType::STRING, Dyads::form, StorageType::MIXED_ARRAY, NounType::LIST, IotaString::form_list);
   Noun::registerDyad(StorageType::WORD_ARRAY, NounType::STRING, Dyads::form, StorageType::WORD, NounType::CHARACTER, IotaString::form_character);
   Noun::registerDyad(StorageType::WORD_ARRAY, NounType::STRING, Dyads::form, StorageType::WORD_ARRAY, NounType::STRING, Noun::identity2);
-
+  Noun::registerDyad(StorageType::WORD_ARRAY, NounType::STRING, Dyads::form, StorageType::WORD_ARRAY, NounType::QUOTED_SYMBOL, IotaString::form_quoted_symbol);
+  
   Noun::registerDyad(StorageType::WORD_ARRAY, NounType::STRING, Dyads::format2, StorageType::WORD, NounType::INTEGER, Integer::format2_impl);
   Noun::registerDyad(StorageType::WORD_ARRAY, NounType::STRING, Dyads::format2, StorageType::FLOAT, NounType::REAL, Integer::format2_impl);
 
@@ -14639,6 +14644,24 @@ Storage IotaString::form_character(Storage i, Storage x)
     {
       return Word::make(INVALID_ARGUMENT, NounType::ERROR);
     }
+  }
+
+  return Word::make(UNSUPPORTED_OBJECT, NounType::ERROR);
+}
+
+Storage IotaString::form_quoted_symbol(Storage i, Storage x)
+{
+  int unicode_colon = static_cast<int>(':');
+
+  if(std::holds_alternative<ints>(i.i))
+  {
+    ints result = ints(std::get<ints>(i.i));
+    if(result.front() == unicode_colon)
+    {
+      result.erase(result.begin());
+    }
+
+    return QuotedSymbol::make(result);
   }
 
   return Word::make(UNSUPPORTED_OBJECT, NounType::ERROR);
@@ -15201,10 +15224,131 @@ Storage Conditional::truth_impl(Storage i)
   return truth(evaluate(i));
 }
 
+// Symbol
+std::unordered_map<int, ints> Symbol::integerToString;
+std::unordered_map<ints, int, IntsHash> Symbol::stringToInteger;
+std::unordered_map<int, Storage> Symbol::values;
+
+void Symbol::initialize()
+{
+  // Monads
+  Noun::registerMonad(StorageType::WORD, NounType::BUILTIN_SYMBOL, Monads::evaluate, Symbol::evaluate_impl);
+  Noun::registerMonad(StorageType::WORD_ARRAY, NounType::BUILTIN_SYMBOL, Monads::evaluate, Symbol::evaluate_impl);
+  Noun::registerMonad(StorageType::WORD, NounType::USER_SYMBOL, Monads::evaluate, Symbol::evaluate_impl);
+  Noun::registerMonad(StorageType::WORD_ARRAY, NounType::USER_SYMBOL, Monads::evaluate, Symbol::evaluate_impl);
+
+  Noun::registerMonad(StorageType::WORD, NounType::BUILTIN_SYMBOL, Monads::truth, Symbol::truth_impl);
+  Noun::registerMonad(StorageType::WORD_ARRAY, NounType::BUILTIN_SYMBOL, Monads::truth, Symbol::truth_impl);
+  Noun::registerMonad(StorageType::WORD, NounType::USER_SYMBOL, Monads::truth, Symbol::truth_impl);
+  Noun::registerMonad(StorageType::WORD_ARRAY, NounType::USER_SYMBOL, Monads::truth, Symbol::truth_impl);
+
+  // Symbol tables
+  integerToString[SymbolType::x] = asciiToUTF32("x");
+  stringToInteger[asciiToUTF32("x")] = SymbolType::x;
+
+  integerToString[SymbolType::y]=asciiToUTF32("y");
+  stringToInteger[asciiToUTF32("y")] = SymbolType::y;
+
+  integerToString[SymbolType::z]=asciiToUTF32("z");
+  stringToInteger[asciiToUTF32("z")] = SymbolType::z;
+
+  integerToString[SymbolType::f]=asciiToUTF32("f");
+  stringToInteger[asciiToUTF32("f")] = SymbolType::f;
+
+  integerToString[SymbolType::undefined]=asciiToUTF32("undefined");
+  stringToInteger[asciiToUTF32("undefined")] = SymbolType::undefined;
+}
+
+Storage Symbol::evaluate_impl(Storage i)
+{
+  if(std::holds_alternative<int>(i.i))
+  {
+    int ii = std::get<int>(i.i);
+
+    auto pair = values.find(ii);
+    if(pair == values.end())
+    {
+      return Word::make(INVALID_ARGUMENT, NounType::ERROR);
+    }
+
+    return pair->second;
+  }
+  else if(std::holds_alternative<ints>(i.i))
+  {
+    ints iis = std::get<ints>(i.i);
+
+    if(stringToInteger.find(iis) == stringToInteger.end())
+    {
+      return Word::make(INVALID_ARGUMENT, NounType::ERROR);
+    }
+
+    int integer = stringToInteger[iis];
+
+    auto pair = values.find(integer);
+    if(pair == values.end())
+    {
+      return Word::make(INVALID_ARGUMENT, NounType::ERROR);
+    }
+
+    return pair->second;
+  }
+
+  return Word::make(UNSUPPORTED_OBJECT, NounType::ERROR);
+}
+
+Storage Symbol::truth_impl(Storage i)
+{
+  return truth(evaluate(i));
+}
+
+ints Symbol::asciiToUTF32(std::string ascii)
+{
+  ints results = ints();
+
+  for(char y : ascii)
+  {
+    results.push_back(static_cast<int>(y));
+  }
+
+  return results;
+}
+
+void QuotedSymbol::initialize()
+{
+  // Monads
+  Noun::registerMonad(StorageType::WORD_ARRAY, NounType::QUOTED_SYMBOL, Monads::evaluate, Noun::identity1);
+  Noun::registerMonad(StorageType::WORD_ARRAY, NounType::QUOTED_SYMBOL, Monads::format, QuotedSymbol::format_impl);
+
+  Noun::registerMonad(StorageType::WORD_ARRAY, NounType::QUOTED_SYMBOL, Monads::truth, Noun::true1);
+
+  Noun::registerDyad(StorageType::WORD_ARRAY, NounType::QUOTED_SYMBOL, Dyads::format2, StorageType::WORD, NounType::INTEGER, Integer::format2_impl);
+  Noun::registerDyad(StorageType::WORD_ARRAY, NounType::QUOTED_SYMBOL, Dyads::format2, StorageType::FLOAT, NounType::REAL, Integer::format2_impl);
+}
+
+Storage QuotedSymbol::make(ints i)
+{
+  return WordArray::make(i, NounType::QUOTED_SYMBOL);
+}
+
+Storage QuotedSymbol::format_impl(Storage i)
+{
+  int unicode_colon = static_cast<int>(':');
+
+  if(std::holds_alternative<ints>(i.i))
+  {
+    ints result = ints(std::get<ints>(i.i));
+    result.insert(result.begin(), unicode_colon);
+    return IotaString::make(result);
+  }
+
+  return Word::make(UNSUPPORTED_OBJECT, NounType::ERROR);
+}
+
 // MixedArray
 // Note: MixedArray is defined in noun.h because it needs access to the Noun serialization API
 // Storage::from_bytes decodes a byte array into a MixedArray object
-maybe<Storage> MixedArray::from_bytes(bytes x, int o) {
+maybe<Storage> MixedArray::from_bytes(bytes x, int o)
+{
   return maybe<Storage>(Storage(0, StorageType::WORD, 0));
 }
 

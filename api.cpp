@@ -4,6 +4,13 @@
 #include "symbols.h"
 #include "noun.h"
 
+const int SymbolType::i;
+const int SymbolType::x;
+const int SymbolType::y;
+const int SymbolType::z;
+const int SymbolType::f;
+const int SymbolType::undefined;
+
 Storage e()
 {
   return Word::make(0, 0);
